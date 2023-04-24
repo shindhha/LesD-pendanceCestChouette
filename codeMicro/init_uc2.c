@@ -1,0 +1,189 @@
+/////////////////////////////////////
+//  Generated Initialization File  //
+/////////////////////////////////////
+
+#include "si_toolchain.h"
+#include "C8051F120_defs.h"
+#include "types.h"
+
+extern u8sod u8_top_tb;
+
+/* definition du rechargement du timer 0 pour le top Tb : 20ms TH0:TL0=0xB03F et  0xC1B1 pour 15.625ms*/
+/* et donc D81F pour 10ms */
+#define VALEUR_RECHARGEMENT_TH0 0x28	/**< rechargement du timer 0 pour le top 10ms */
+#define VALEUR_RECHARGEMENT_TL0 0x81	/**< rechargement du timer 0 pour le top 10ms */
+
+// Peripheral specific initialization functions,
+// Called from the Init_Device() function
+void Timer_Init()
+{
+	SFRPAGE   = TIMER01_PAGE;
+	 /* timer0 actif et timer1 actif */ 
+	TCON      = 0x50;
+    TMOD      = 0x21;
+    CKCON     = 0x10;
+   /*	Timer 0 => 10ms		*/
+    TH0=0x28;
+    TL0=0x81;
+
+    /* TH1 pour baudrate uart1: 115200 */
+    TH1=0x27;
+}
+
+void UART_Init()
+{
+    SFRPAGE   = UART1_PAGE;
+    SCON1     = 0x50;
+}
+
+void Port_IO_Init()
+{
+    // P0.0  -  TX0 (UART0), Open-Drain, Digital
+    // P0.1  -  RX0 (UART0), Open-Drain, Digital
+    // P0.2  -  TX1 (UART1), Open-Drain, Digital
+    // P0.3  -  RX1 (UART1), Open-Drain, Digital
+    // P0.4  -  Unassigned,  Open-Drain, Digital
+    // P0.5  -  Unassigned,  Open-Drain, Digital
+    // P0.6  -  Unassigned,  Open-Drain, Digital
+    // P0.7  -  Unassigned,  Open-Drain, Digital
+
+    // P1.0  -  Unassigned,  Open-Drain, Digital
+    // P1.1  -  Unassigned,  Open-Drain, Digital
+    // P1.2  -  Unassigned,  Open-Drain, Digital
+    // P1.3  -  Unassigned,  Open-Drain, Digital
+    // P1.4  -  Unassigned,  Open-Drain, Digital
+    // P1.5  -  Unassigned,  Open-Drain, Digital
+    // P1.6  -  Unassigned,  Open-Drain, Digital
+    // P1.7  -  Unassigned,  Open-Drain, Digital
+
+    // P2.0  -  Unassigned,  Open-Drain, Digital
+    // P2.1  -  Unassigned,  Open-Drain, Digital
+    // P2.2  -  Unassigned,  Open-Drain, Digital
+    // P2.3  -  Unassigned,  Open-Drain, Digital
+    // P2.4  -  Unassigned,  Open-Drain, Digital
+    // P2.5  -  Unassigned,  Open-Drain, Digital
+    // P2.6  -  Unassigned,  Open-Drain, Digital
+    // P2.7  -  Unassigned,  Open-Drain, Digital
+
+    // P3.0  -  Unassigned,  Open-Drain, Digital
+    // P3.1  -  Unassigned,  Open-Drain, Digital
+    // P3.2  -  Unassigned,  Open-Drain, Digital
+    // P3.3  -  Unassigned,  Open-Drain, Digital
+    // P3.4  -  Unassigned,  Open-Drain, Digital
+    // P3.5  -  Unassigned,  Open-Drain, Digital
+    // P3.6  -  Unassigned,  Open-Drain, Digital
+    // P3.7  -  Unassigned,  Open-Drain, Digital
+
+    SFRPAGE   = CONFIG_PAGE;
+    XBR0      = 0x04;
+    XBR2      = 0x44;
+}
+
+/** \brief Configuration des sources de reset interne
+  *
+  * \return void
+  *
+  * \author JP
+  *
+  * <b>Ressource :</b> - Special Function Register WDTCN <br>
+  * <b>Ressource :</b> - Special Function Register SFRPAGE <br>
+  * <b>Ressource :</b> - Special Function Register RSTSRC <br>
+  */
+void Init_Reset_Sources(void)
+{
+	/* desactivation du watchdog interne au microcontroleur */
+	/* sequence d'ecriture de 0xDE suivi de 0xAD dans WDTCN */
+	WDTCN     = 0xDE;
+	WDTCN     = 0xAD;
+
+	/* selection du banc de special registers */
+	SFRPAGE   = (u8sod)(LEGACY_PAGE);
+
+	/* Desactivation de toutes les source de reset interne  */
+	RSTSRC    = 0U;
+}/* Init_Reset_Sources */
+
+void Oscillator_Init()
+{
+    int i = 0;
+    SFRPAGE   = CONFIG_PAGE;
+    OSCXCN    = 0x20;
+    PLL0CN    = 0x04;
+    CCH0CN    &= ~0x20;
+    SFRPAGE   = LEGACY_PAGE;
+    FLSCL     = 0x90;
+    SFRPAGE   = CONFIG_PAGE;
+    CCH0CN    |= 0x20;
+    PLL0CN    |= 0x01;
+    PLL0DIV   = 0x01;
+    PLL0FLT   = 0x21;
+    PLL0MUL   = 0x02;
+    for (i = 0; i < 15; i++);  // Wait 5us for initialization
+    PLL0CN    |= 0x02;
+    while ((PLL0CN & 0x10) == 0);
+    CLKSEL    = 0x02;
+}
+
+void Interrupts_Init()
+{
+    IE        = 0x08;
+}
+
+// Initialization function for device,
+// Call Init_Device() from your main program
+void Init_Device(void)
+{
+	/* init des sources de reset */
+	Init_Reset_Sources();
+
+    Timer_Init();
+    UART_Init();
+    Port_IO_Init();
+    Oscillator_Init();
+   // Interrupts_Init();
+}
+
+
+/** \brief ROUTINE D'INTERRUPTION (IT_Timer)
+  *
+  * \return void
+  *
+  * \author JP
+  *
+  * <b>SOURCE      :</b> Fonction d'interruption timert 0  <br>
+  *
+  * <b>Ressources :</b> Special Function Register SFRPAGE  <br>
+  * <b>Ressources :</b> Special Function Register TL0 et TH0 <br>
+  * <b>Ressources :</b> Special Function Register sbit TF0, TR0 <br>
+  * <b>Ressources :</b> u8_top_tb <br>
+  * <b>Ressources :</b> u8_mode_derangement_actif_x <br>
+  * <b>Ressources :</b> u8_mode_derangement_actif_i <br>
+  *
+  */
+void IT_Timer0 (void) interrupt 1
+{
+	u8sod 	loc_u8_sfrpage_save; /* sauvegarde du registre SFRPAGE */
+
+	/* sauvegarde de SFRPAGE */
+	loc_u8_sfrpage_save = SFRPAGE;
+	/* selection de la page du timer*/
+	SFRPAGE = TIMER01_PAGE;
+
+	/* Acquitte l'IT */
+	TF0 = 0;
+
+	/* on recharge le timer */
+	TR0=0;    /* on commence par arreter le timer */
+	TH0=VALEUR_RECHARGEMENT_TH0; /* on charge le poids fort          */ 
+	TL0=VALEUR_RECHARGEMENT_TL0; /* on charge le poids faible        */
+	TR0=1;    /* on relance le Timer              */
+
+	/* restauration du SFRPAGE */
+	SFRPAGE = loc_u8_sfrpage_save;
+
+	/*	On relance les actions de la tache de fond														*/
+	u8_top_tb = 1;
+
+	
+
+}/* IT_Timer0 */

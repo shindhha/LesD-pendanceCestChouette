@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="258.0" prefWidth="562.0" stylesheets="@../css/choixCarte.css" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controleur.Popup">
+   <children>
+      <Button layoutX="210.0" layoutY="209.0" mnemonicParsing="false" onAction="#reponseOui" text="OUI" />
+      <Button layoutX="299.0" layoutY="209.0" mnemonicParsing="false" onAction="#reponseNon" text="NON" />
+      <ImageView fitHeight="118.0" fitWidth="169.0" layoutX="38.0" layoutY="26.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../images/led1.jpg" />
+         </image>
+      </ImageView>
+      <Label layoutX="233.0" layoutY="43.0" text="LED Signe de vie : Allumée Verte&#10;LED Alarme : Allumée Verte&#10;LED Caméra : Allumée Verte&#10;LED MemView : Allumée Verte ou éteinte" textFill="#546472">
+         <font>
+            <Font name="Open Sans Regular" size="15.0" />
+         </font>
+      </Label>
+      <Label layoutX="219.0" layoutY="174.0" prefHeight="20.0" prefWidth="144.0" text="Fonctionnel ?" textFill="#546472">
+         <font>
+            <Font name="Open Sans Regular" size="20.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>

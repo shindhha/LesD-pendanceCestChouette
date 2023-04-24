@@ -1,0 +1,763 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\c51.exe main.c DB OE BR INCDIR(C:\SiLabs\MCU\Inc) LARGE SB CD OR
+
+line level    source
+
+   1          #include "init_uc2.h"
+   2          #include "c8051F12.h"
+   3          #include "types.h"
+   4          #include "uart1.h"
+   5          
+   6          #define NB_SWITCHS 26
+   7          #define DEBUT_MSG 0x02
+   8          #define DEMANDE_ETAT_LEDS 0x04
+   9          
+  10          // Interruption timer
+  11          u8sod u8_top_tb;
+  12          
+  13          
+  14          u8sod u8_lu;
+  15          
+  16          /* Déclaration des switchs */
+  17          sbit S1_2 = P2^0;
+  18          sbit S1_1 = P2^1;
+  19          sbit S2_2 = P2^6;
+  20          sbit S2_1 = P2^7;
+  21          sbit S3_2 = P2^4;
+  22          sbit S3_1 = P2^5;
+  23          sbit S4_2 = P2^5; // A changer
+  24          sbit S4_1 = P2^5; // A changer
+  25          sbit S5_2 = P5^2;
+  26          sbit S5_1 = P5^3;
+  27          sbit S6_2 = P5^4;
+  28          sbit S6_1 = P3^6;
+  29          sbit S7_2 = P2^2;
+  30          sbit S7_1 = P2^3;
+  31          sbit S8_2 = P3^0;
+  32          sbit S8_1 = P3^1;
+  33          sbit S9_2 = P3^2;
+  34          sbit S9_1 = P3^3;
+  35          sbit S10_2 = P3^4;
+  36          sbit S10_1 = P3^5;
+  37          sbit ROT1_1 = P4^0;
+  38          sbit ROT1_2 = P4^1;
+  39          sbit ROT1_3 = P4^2;
+  40          sbit ROT2_1 = P4^3;
+  41          sbit ROT2_2 = P4^4;
+  42          sbit ROT2_3 = P4^5;
+  43          
+  44          /* Déclaration des leds */
+  45          sbit LED_D1 = P5^0;
+  46          sbit LED_D4 = P5^1;
+  47          
+  48          //sbit switchs[NB_SWITCHS] = {
+  49          //      S1_1, S1_2, S2_1, S2_2, S3_1, S3_2, S4_1, S4_2, 
+  50          //      S5_1, S5_2, S6_1, S6_2, S7_1, S7_2, S8_1, S8_2,
+  51          //      S9_1, S9_2, S10_1, S10_2, ROT1_1, ROT1_2, ROT1_3,
+  52          //      ROT2_1, ROT2_2, ROT2_3
+  53          //};
+  54          // Impossible de créer un tableau de sbit dans la version actuelle
+  55          // On va donc utiliser un switch case
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 2   
+
+  56          
+  57          
+  58          void choisir_switch(u8sod num_switch, bit on);
+  59          void maj_switchs();
+  60          void envoyer_etat_leds();
+  61          
+  62          
+  63          void choisir_switch(u8sod num_switch, bit on)
+  64          {
+  65   1              switch (num_switch)
+  66   1              {
+  67   2                      case 0:
+  68   2                              S1_1 = on;
+  69   2                              break;
+  70   2                      case 1:
+  71   2                              S1_2 = on;
+  72   2                              break;
+  73   2                      case 2:
+  74   2                              S2_1 = on;
+  75   2                              break;
+  76   2                      case 3:
+  77   2                              S2_2 = on;
+  78   2                              break;
+  79   2                      case 4:
+  80   2                              S3_1 = on;
+  81   2                              break;
+  82   2                      case 5:
+  83   2                              S3_2 = on;
+  84   2                              break;
+  85   2                      case 6:
+  86   2                              S4_1 = on;
+  87   2                              break;
+  88   2                      case 7:
+  89   2                              S4_2 = on;
+  90   2                              break;
+  91   2                      case 8:
+  92   2                              S5_1 = on;
+  93   2                              break;
+  94   2                      case 9:
+  95   2                              S5_2 = on;
+  96   2                              break;
+  97   2                      case 10:
+  98   2                              S6_1 = on;
+  99   2                              break;
+ 100   2                      case 11:
+ 101   2                              S6_2 = on;
+ 102   2                              break;
+ 103   2                      case 12:
+ 104   2                              S7_1 = on;
+ 105   2                              break;
+ 106   2                      case 13:
+ 107   2                              S7_2 = on;
+ 108   2                              break;
+ 109   2                      case 14:
+ 110   2                              S8_1 = on;
+ 111   2                              break;
+ 112   2                      case 15:
+ 113   2                              S8_2 = on;
+ 114   2                              break;
+ 115   2                      case 16:
+ 116   2                              S9_1 = on;
+ 117   2                              break;
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 3   
+
+ 118   2                      case 17:
+ 119   2                              S9_2 = on;
+ 120   2                              break;
+ 121   2                      case 18:
+ 122   2                              S10_1 = on;
+ 123   2                              break;
+ 124   2                      case 19:
+ 125   2                              S10_2 = on;
+ 126   2                              break;
+ 127   2                      case 20:
+ 128   2                              ROT1_1 = on;
+ 129   2                              break;
+ 130   2                      case 21:
+ 131   2                              if (ROT1_1 == 0) {
+ 132   3                                      ROT1_2 = on;
+ 133   3                              }
+ 134   2                              break;
+ 135   2                      case 22:
+ 136   2                              if (ROT1_1 == 0) {
+ 137   3                                      ROT1_3 = on;
+ 138   3                              }
+ 139   2                              break;
+ 140   2                      case 23:
+ 141   2                              ROT2_1 = on;
+ 142   2                              break;
+ 143   2                      case 24:
+ 144   2                              if (ROT2_1 == 0) {
+ 145   3                                      ROT2_2 = on;
+ 146   3                              }
+ 147   2                              break;
+ 148   2                      case 25:
+ 149   2                              if (ROT2_1 == 0) {
+ 150   3                                      ROT2_3 = on;
+ 151   3                              }
+ 152   2                              break;
+ 153   2              }
+ 154   1      }
+ 155          
+ 156          /*
+ 157           * Les messages reçus sont de la forme :
+ 158           *
+ 159           *    0x02                                      [1 octet data]
+ 160           * Début de comm     11 [5 bit num switch] [1 bit on/off]
+ 161           */
+ 162          void maj_switchs() 
+ 163          {
+ 164   1              u8sod num_switch;
+ 165   1              bit on;
+ 166   1              while (1)
+ 167   1              {
+ 168   2                      if (u8NbOctetsDansFifoRxDialCPU() > 0)
+ 169   2                      {
+ 170   3                              u8_lu = u8DepileUnOctetDeFifoRxDialCPU();
+ 171   3                              on = (u8_lu & 0x01) == 1;
+ 172   3                              num_switch = (u8_lu & 0x3E) >> 1;
+ 173   3                              if (num_switch < NB_SWITCHS)
+ 174   3                              {
+ 175   4                                      choisir_switch(num_switch, on);
+ 176   4                              }
+ 177   3                              break;
+ 178   3                      }
+ 179   2              }
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 4   
+
+ 180   1      }
+ 181          
+ 182          /*
+ 183           * Envoie un octet contenant l'état des leds D1 et D4
+ 184           * Octet de forme : 000000[D4][D1]
+ 185           * avec D1 et D4 = 0 ou 1 en fonction de l'état
+ 186           * D4 = 0 -> D4 allumée
+ 187           * D1 = 0 -> D1 éteinte
+ 188           */
+ 189          void envoyer_etat_leds()
+ 190          {
+ 191   1              u8sod D1 = LED_D1 & 0x01;
+ 192   1              u8sod D4 = ~LED_D4 & 0x01;
+ 193   1              u8sod etat_leds = D1 | (D4 << 1);
+ 194   1              u8EcritDansFifoTxDialCPU(etat_leds);
+ 195   1              Ecriture_Statut_Emission_Uart1(EMISSION_UART1_EN_COURS);
+ 196   1      }
+ 197          
+ 198          void main() {
+ 199   1      
+ 200   1              //Init_micro_interne();
+ 201   1              Init_Device();
+ 202   1      
+ 203   1              Init_Uart1();
+ 204   1      
+ 205   1              //autorisation interruption timer0
+ 206   1              IE=IE | 0x02;
+ 207   1      
+ 208   1              //autorisation it UART1
+ 209   1              Autorise_Interruption_Uart1();
+ 210   1      
+ 211   1              //autorisation des interruptions
+ 212   1              IE=IE | 0x80;
+ 213   1      
+ 214   1              while (1) {
+ 215   2                      if (u8_top_tb==1)
+ 216   2                      {       
+ 217   3                              u8_top_tb =0;
+ 218   3                              if (u8NbOctetsDansFifoRxDialCPU() > 0)
+ 219   3                              {
+ 220   4                                      u8_lu = u8DepileUnOctetDeFifoRxDialCPU();
+ 221   4                                      /* Mise a jout des switchs */
+ 222   4                                      if (u8_lu == DEBUT_MSG)
+ 223   4                                      {
+ 224   5                                              maj_switchs();
+ 225   5                                      }
+ 226   4                                      /* Demande de l'état des leds */
+ 227   4                                      else if (u8_lu == DEMANDE_ETAT_LEDS)
+ 228   4                                      {
+ 229   5                                              envoyer_etat_leds();
+ 230   5                                              Ecriture_Statut_Emission_Uart1(EMISSION_UART1_TERMINEE);
+ 231   5                                      }
+ 232   4                              }
+ 233   3      
+ 234   3                      }
+ 235   2              }
+ 236   1              
+ 237   1      }
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 5   
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION _choisir_switch (BEGIN)
+                                           ; SOURCE LINE # 63
+;---- Variable 'num_switch' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 64
+                                           ; SOURCE LINE # 65
+0000 EF                MOV     A,R7
+0001 B41A00            CJNE    A,#01AH,?C0049
+0004         ?C0049:
+0004 4003              JC      $ + 5H
+0006 020000      R     LJMP    ?C0032
+0009 900000      R     MOV     DPTR,#?C0050
+000C F8                MOV     R0,A
+000D 28                ADD     A,R0
+000E 28                ADD     A,R0
+000F 73                JMP     @A+DPTR
+0010         ?C0050:
+0010 020000      R     LJMP    ?C0002
+0013 020000      R     LJMP    ?C0003
+0016 020000      R     LJMP    ?C0004
+0019 020000      R     LJMP    ?C0005
+001C 020000      R     LJMP    ?C0006
+001F 020000      R     LJMP    ?C0007
+0022 020000      R     LJMP    ?C0008
+0025 020000      R     LJMP    ?C0009
+0028 020000      R     LJMP    ?C0010
+002B 020000      R     LJMP    ?C0011
+002E 020000      R     LJMP    ?C0012
+0031 020000      R     LJMP    ?C0013
+0034 020000      R     LJMP    ?C0014
+0037 020000      R     LJMP    ?C0015
+003A 020000      R     LJMP    ?C0016
+003D 020000      R     LJMP    ?C0017
+0040 020000      R     LJMP    ?C0018
+0043 020000      R     LJMP    ?C0019
+0046 020000      R     LJMP    ?C0020
+0049 020000      R     LJMP    ?C0021
+004C 020000      R     LJMP    ?C0022
+004F 020000      R     LJMP    ?C0023
+0052 020000      R     LJMP    ?C0025
+0055 020000      R     LJMP    ?C0027
+0058 020000      R     LJMP    ?C0028
+005B 020000      R     LJMP    ?C0030
+                                           ; SOURCE LINE # 66
+                                           ; SOURCE LINE # 67
+005E         ?C0002:
+                                           ; SOURCE LINE # 68
+005E A200        R     MOV     C,on
+0060 92A1              MOV     S1_1,C
+                                           ; SOURCE LINE # 69
+0062 22                RET     
+                                           ; SOURCE LINE # 70
+0063         ?C0003:
+                                           ; SOURCE LINE # 71
+0063 A200        R     MOV     C,on
+0065 92A0              MOV     S1_2,C
+                                           ; SOURCE LINE # 72
+0067 22                RET     
+                                           ; SOURCE LINE # 73
+0068         ?C0004:
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 6   
+
+                                           ; SOURCE LINE # 74
+0068 A200        R     MOV     C,on
+006A 92A7              MOV     S2_1,C
+                                           ; SOURCE LINE # 75
+006C 22                RET     
+                                           ; SOURCE LINE # 76
+006D         ?C0005:
+                                           ; SOURCE LINE # 77
+006D A200        R     MOV     C,on
+006F 92A6              MOV     S2_2,C
+                                           ; SOURCE LINE # 78
+0071 22                RET     
+                                           ; SOURCE LINE # 79
+0072         ?C0006:
+                                           ; SOURCE LINE # 80
+0072 A200        R     MOV     C,on
+0074 92A5              MOV     S3_1,C
+                                           ; SOURCE LINE # 81
+0076 22                RET     
+                                           ; SOURCE LINE # 82
+0077         ?C0007:
+                                           ; SOURCE LINE # 83
+0077 A200        R     MOV     C,on
+0079 92A4              MOV     S3_2,C
+                                           ; SOURCE LINE # 84
+007B 22                RET     
+                                           ; SOURCE LINE # 85
+007C         ?C0008:
+                                           ; SOURCE LINE # 86
+007C A200        R     MOV     C,on
+007E 92A5              MOV     S4_1,C
+                                           ; SOURCE LINE # 87
+0080 22                RET     
+                                           ; SOURCE LINE # 88
+0081         ?C0009:
+                                           ; SOURCE LINE # 89
+0081 A200        R     MOV     C,on
+0083 92A5              MOV     S4_2,C
+                                           ; SOURCE LINE # 90
+0085 22                RET     
+                                           ; SOURCE LINE # 91
+0086         ?C0010:
+                                           ; SOURCE LINE # 92
+0086 A200        R     MOV     C,on
+0088 92DB              MOV     S5_1,C
+                                           ; SOURCE LINE # 93
+008A 22                RET     
+                                           ; SOURCE LINE # 94
+008B         ?C0011:
+                                           ; SOURCE LINE # 95
+008B A200        R     MOV     C,on
+008D 92DA              MOV     S5_2,C
+                                           ; SOURCE LINE # 96
+008F 22                RET     
+                                           ; SOURCE LINE # 97
+0090         ?C0012:
+                                           ; SOURCE LINE # 98
+0090 A200        R     MOV     C,on
+0092 92B6              MOV     S6_1,C
+                                           ; SOURCE LINE # 99
+0094 22                RET     
+                                           ; SOURCE LINE # 100
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 7   
+
+0095         ?C0013:
+                                           ; SOURCE LINE # 101
+0095 A200        R     MOV     C,on
+0097 92DC              MOV     S6_2,C
+                                           ; SOURCE LINE # 102
+0099 22                RET     
+                                           ; SOURCE LINE # 103
+009A         ?C0014:
+                                           ; SOURCE LINE # 104
+009A A200        R     MOV     C,on
+009C 92A3              MOV     S7_1,C
+                                           ; SOURCE LINE # 105
+009E 22                RET     
+                                           ; SOURCE LINE # 106
+009F         ?C0015:
+                                           ; SOURCE LINE # 107
+009F A200        R     MOV     C,on
+00A1 92A2              MOV     S7_2,C
+                                           ; SOURCE LINE # 108
+00A3 22                RET     
+                                           ; SOURCE LINE # 109
+00A4         ?C0016:
+                                           ; SOURCE LINE # 110
+00A4 A200        R     MOV     C,on
+00A6 92B1              MOV     S8_1,C
+                                           ; SOURCE LINE # 111
+00A8 22                RET     
+                                           ; SOURCE LINE # 112
+00A9         ?C0017:
+                                           ; SOURCE LINE # 113
+00A9 A200        R     MOV     C,on
+00AB 92B0              MOV     S8_2,C
+                                           ; SOURCE LINE # 114
+00AD 22                RET     
+                                           ; SOURCE LINE # 115
+00AE         ?C0018:
+                                           ; SOURCE LINE # 116
+00AE A200        R     MOV     C,on
+00B0 92B3              MOV     S9_1,C
+                                           ; SOURCE LINE # 117
+00B2 22                RET     
+                                           ; SOURCE LINE # 118
+00B3         ?C0019:
+                                           ; SOURCE LINE # 119
+00B3 A200        R     MOV     C,on
+00B5 92B2              MOV     S9_2,C
+                                           ; SOURCE LINE # 120
+00B7 22                RET     
+                                           ; SOURCE LINE # 121
+00B8         ?C0020:
+                                           ; SOURCE LINE # 122
+00B8 A200        R     MOV     C,on
+00BA 92B5              MOV     S10_1,C
+                                           ; SOURCE LINE # 123
+00BC 22                RET     
+                                           ; SOURCE LINE # 124
+00BD         ?C0021:
+                                           ; SOURCE LINE # 125
+00BD A200        R     MOV     C,on
+00BF 92B4              MOV     S10_2,C
+                                           ; SOURCE LINE # 126
+00C1 22                RET     
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 8   
+
+                                           ; SOURCE LINE # 127
+00C2         ?C0022:
+                                           ; SOURCE LINE # 128
+00C2 A200        R     MOV     C,on
+00C4 92C8              MOV     ROT1_1,C
+                                           ; SOURCE LINE # 129
+00C6 22                RET     
+                                           ; SOURCE LINE # 130
+00C7         ?C0023:
+                                           ; SOURCE LINE # 131
+00C7 20C821            JB      ROT1_1,?C0032
+                                           ; SOURCE LINE # 132
+00CA A200        R     MOV     C,on
+00CC 92C9              MOV     ROT1_2,C
+                                           ; SOURCE LINE # 133
+                                           ; SOURCE LINE # 134
+00CE 22                RET     
+                                           ; SOURCE LINE # 135
+00CF         ?C0025:
+                                           ; SOURCE LINE # 136
+00CF 20C819            JB      ROT1_1,?C0032
+                                           ; SOURCE LINE # 137
+00D2 A200        R     MOV     C,on
+00D4 92CA              MOV     ROT1_3,C
+                                           ; SOURCE LINE # 138
+                                           ; SOURCE LINE # 139
+00D6 22                RET     
+                                           ; SOURCE LINE # 140
+00D7         ?C0027:
+                                           ; SOURCE LINE # 141
+00D7 A200        R     MOV     C,on
+00D9 92CB              MOV     ROT2_1,C
+                                           ; SOURCE LINE # 142
+00DB 22                RET     
+                                           ; SOURCE LINE # 143
+00DC         ?C0028:
+                                           ; SOURCE LINE # 144
+00DC 20CB0C            JB      ROT2_1,?C0032
+                                           ; SOURCE LINE # 145
+00DF A200        R     MOV     C,on
+00E1 92CC              MOV     ROT2_2,C
+                                           ; SOURCE LINE # 146
+                                           ; SOURCE LINE # 147
+00E3 22                RET     
+                                           ; SOURCE LINE # 148
+00E4         ?C0030:
+                                           ; SOURCE LINE # 149
+00E4 20CB04            JB      ROT2_1,?C0032
+                                           ; SOURCE LINE # 150
+00E7 A200        R     MOV     C,on
+00E9 92CD              MOV     ROT2_3,C
+                                           ; SOURCE LINE # 151
+                                           ; SOURCE LINE # 152
+                                           ; SOURCE LINE # 153
+                                           ; SOURCE LINE # 154
+00EB         ?C0032:
+00EB 22                RET     
+             ; FUNCTION _choisir_switch (END)
+
+             ; FUNCTION maj_switchs (BEGIN)
+                                           ; SOURCE LINE # 162
+                                           ; SOURCE LINE # 163
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 9   
+
+0000         ?C0033:
+                                           ; SOURCE LINE # 166
+                                           ; SOURCE LINE # 167
+                                           ; SOURCE LINE # 168
+0000 120000      E     LCALL   u8NbOctetsDansFifoRxDialCPU
+0003 D3                SETB    C
+0004 EF                MOV     A,R7
+0005 9400              SUBB    A,#00H
+0007 7480              MOV     A,#080H
+0009 9480              SUBB    A,#080H
+000B 40F3              JC      ?C0033
+                                           ; SOURCE LINE # 169
+                                           ; SOURCE LINE # 170
+000D 120000      E     LCALL   u8DepileUnOctetDeFifoRxDialCPU
+0010 900000      R     MOV     DPTR,#u8_lu
+0013 EF                MOV     A,R7
+0014 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 171
+0015 5401              ANL     A,#01H
+0017 6401              XRL     A,#01H
+0019 7003              JNZ     ?C0036
+001B D3                SETB    C
+001C 8001              SJMP    ?C0037
+001E         ?C0036:
+001E C3                CLR     C
+001F         ?C0037:
+001F 9200        R     MOV     on,C
+                                           ; SOURCE LINE # 172
+0021 900000      R     MOV     DPTR,#u8_lu
+0024 E0                MOVX    A,@DPTR
+0025 543E              ANL     A,#03EH
+0027 C3                CLR     C
+0028 13                RRC     A
+0029 FF                MOV     R7,A
+;---- Variable 'num_switch' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 173
+002A C3                CLR     C
+002B 941A              SUBB    A,#01AH
+002D 7480              MOV     A,#080H
+002F 9480              SUBB    A,#080H
+0031 5007              JNC     ?C0039
+                                           ; SOURCE LINE # 174
+                                           ; SOURCE LINE # 175
+0033 A200        R     MOV     C,on
+0035 9200        R     MOV     ?_choisir_switch?BIT,C
+0037 120000      R     LCALL   _choisir_switch
+                                           ; SOURCE LINE # 176
+                                           ; SOURCE LINE # 177
+                                           ; SOURCE LINE # 178
+                                           ; SOURCE LINE # 179
+                                           ; SOURCE LINE # 180
+003A         ?C0039:
+003A 22                RET     
+             ; FUNCTION maj_switchs (END)
+
+             ; FUNCTION envoyer_etat_leds (BEGIN)
+                                           ; SOURCE LINE # 189
+                                           ; SOURCE LINE # 190
+                                           ; SOURCE LINE # 191
+0000 A2D8              MOV     C,LED_D1
+0002 E4                CLR     A
+0003 33                RLC     A
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 10  
+
+0004 FF                MOV     R7,A
+;---- Variable 'D1' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 192
+0005 A2D9              MOV     C,LED_D4
+0007 B3                CPL     C
+0008 E4                CLR     A
+0009 33                RLC     A
+000A FE                MOV     R6,A
+;---- Variable 'D4' assigned to Register 'R6' ----
+                                           ; SOURCE LINE # 193
+000B 25E0              ADD     A,ACC
+000D 4F                ORL     A,R7
+000E FF                MOV     R7,A
+;---- Variable 'etat_leds' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 194
+000F 120000      E     LCALL   _u8EcritDansFifoTxDialCPU
+                                           ; SOURCE LINE # 195
+0012 7F69              MOV     R7,#069H
+0014 020000      E     LJMP    _Ecriture_Statut_Emission_Uart1
+             ; FUNCTION envoyer_etat_leds (END)
+
+             ; FUNCTION main (BEGIN)
+                                           ; SOURCE LINE # 198
+                                           ; SOURCE LINE # 201
+0000 120000      E     LCALL   Init_Device
+                                           ; SOURCE LINE # 203
+0003 120000      E     LCALL   Init_Uart1
+                                           ; SOURCE LINE # 206
+0006 43A802            ORL     IE,#02H
+                                           ; SOURCE LINE # 209
+0009 120000      E     LCALL   Autorise_Interruption_Uart1
+                                           ; SOURCE LINE # 212
+000C 43A880            ORL     IE,#080H
+000F         ?C0041:
+                                           ; SOURCE LINE # 214
+                                           ; SOURCE LINE # 215
+000F 900000      R     MOV     DPTR,#u8_top_tb
+0012 E0                MOVX    A,@DPTR
+0013 6401              XRL     A,#01H
+0015 70F8              JNZ     ?C0041
+                                           ; SOURCE LINE # 216
+                                           ; SOURCE LINE # 217
+0017 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 218
+0018 120000      E     LCALL   u8NbOctetsDansFifoRxDialCPU
+001B D3                SETB    C
+001C EF                MOV     A,R7
+001D 9400              SUBB    A,#00H
+001F 7480              MOV     A,#080H
+0021 9480              SUBB    A,#080H
+0023 40EA              JC      ?C0041
+                                           ; SOURCE LINE # 219
+                                           ; SOURCE LINE # 220
+0025 120000      E     LCALL   u8DepileUnOctetDeFifoRxDialCPU
+0028 900000      R     MOV     DPTR,#u8_lu
+002B EF                MOV     A,R7
+002C F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 222
+002D 6402              XRL     A,#02H
+002F 7005              JNZ     ?C0045
+                                           ; SOURCE LINE # 223
+                                           ; SOURCE LINE # 224
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 11  
+
+0031 120000      R     LCALL   maj_switchs
+                                           ; SOURCE LINE # 225
+0034 80D9              SJMP    ?C0041
+0036         ?C0045:
+                                           ; SOURCE LINE # 227
+0036 900000      R     MOV     DPTR,#u8_lu
+0039 E0                MOVX    A,@DPTR
+003A 6404              XRL     A,#04H
+003C 70D1              JNZ     ?C0041
+                                           ; SOURCE LINE # 228
+                                           ; SOURCE LINE # 229
+003E 120000      R     LCALL   envoyer_etat_leds
+                                           ; SOURCE LINE # 230
+0041 7F96              MOV     R7,#096H
+0043 120000      E     LCALL   _Ecriture_Statut_Emission_Uart1
+                                           ; SOURCE LINE # 231
+                                           ; SOURCE LINE # 232
+                                           ; SOURCE LINE # 234
+                                           ; SOURCE LINE # 235
+0046 80C7              SJMP    ?C0041
+             ; FUNCTION main (END)
+
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 12  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+Init_Device. . . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+TCON . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+CPT0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+CPT1CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+FLSTAT . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+SCON0. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0098H  1
+SCON1. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0098H  1
+P2 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A0H  1
+IE . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A8H  1
+P3 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B0H  1
+IP . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B8H  1
+SMB0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C0H  1
+TMR2CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+TMR3CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+TMR4CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+P4 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+PSW. . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D0H  1
+PCA0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D8H  1
+P5 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D8H  1
+ADC0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E8H  1
+ADC2CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E8H  1
+SPI0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00F8H  1
+u8sod. . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+u16sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_INT    -----  2
+u32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_LONG   -----  4
+s8sod. . . . . . . . . . . . . . . . .  TYPEDEF  -----  CHAR     -----  1
+s16sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  INT      -----  2
+s32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  LONG     -----  4
+f32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  FLOAT    -----  4
+f64sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  FLOAT    -----  4
+Init_Uart1 . . . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
+_Ecriture_Statut_Emission_Uart1. . . .  EXTERN   CODE   PROC     -----  -----
+Autorise_Interruption_Uart1. . . . . .  EXTERN   CODE   PROC     -----  -----
+_u8EcritDansFifoTxDialCPU. . . . . . .  EXTERN   CODE   PROC     -----  -----
+u8NbOctetsDansFifoRxDialCPU. . . . . .  EXTERN   CODE   PROC     -----  -----
+u8DepileUnOctetDeFifoRxDialCPU . . . .  EXTERN   CODE   PROC     -----  -----
+u8_top_tb. . . . . . . . . . . . . . .  PUBLIC   XDATA  U_CHAR   0000H  1
+u8_lu. . . . . . . . . . . . . . . . .  PUBLIC   XDATA  U_CHAR   0001H  1
+S1_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A0H  1
+S1_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A1H  1
+S2_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A6H  1
+S2_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A7H  1
+S3_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A4H  1
+S3_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A5H  1
+S4_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A5H  1
+S4_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A5H  1
+S5_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00DAH  1
+S5_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00DBH  1
+S6_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00DCH  1
+S6_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B6H  1
+S7_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A2H  1
+S7_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00A3H  1
+S8_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B0H  1
+S8_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B1H  1
+S9_2 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B2H  1
+S9_1 . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B3H  1
+S10_2. . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B4H  1
+C51 COMPILER V9.59.0.0   MAIN                                                              07/21/2022 15:12:56 PAGE 13  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+S10_1. . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B5H  1
+ROT1_1 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00C8H  1
+ROT1_2 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00C9H  1
+ROT1_3 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00CAH  1
+ROT2_1 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00CBH  1
+ROT2_2 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00CCH  1
+ROT2_3 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00CDH  1
+LED_D1 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00D8H  1
+LED_D4 . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00D9H  1
+_choisir_switch. . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  num_switch . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  on . . . . . . . . . . . . . . . . .  AUTO     DATA   BIT      0000H  1
+maj_switchs. . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  num_switch . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  on . . . . . . . . . . . . . . . . .  AUTO     DATA   BIT      0000H  1
+envoyer_etat_leds. . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  D1 . . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  D4 . . . . . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0006H  1
+  etat_leds. . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+main . . . . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    390    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      2    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       2
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,3 @@
+"C:\Users\lo.gaven\TestLed\main.obj",
+"C:\Users\lo.gaven\TestLed\init_uc2.obj",
+"C:\Users\lo.gaven\TestLed\uart1.obj"  TO "C:\Users\lo.gaven\TestLed\TestLed2" RS(256) PL(68) PW(78) 

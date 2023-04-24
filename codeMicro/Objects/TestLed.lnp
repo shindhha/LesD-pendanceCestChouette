@@ -1,0 +1,4 @@
+".\Objects\init_uc.obj",
+".\Objects\main.obj" 
+TO ".\Objects\TestLed" 
+PRINT(".\Listings\TestLed.m51") RAMSIZE(256) 

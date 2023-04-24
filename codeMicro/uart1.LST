@@ -1,0 +1,1154 @@
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE UART1
+OBJECT MODULE PLACED IN uart1.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\c51.exe uart1.c DB OE BR INCDIR(C:\SiLabs\MCU\Inc) LARGE SB CD OR
+
+line level    source
+
+   1          /**
+   2           * \file      uart1.c
+   3           * \author    MS
+   4           * \date      09/12/2012
+   5           * \version   00
+   6           * \brief     Gestion de l'UART1
+   7           *
+   8           * \details
+   9           *              - Projet                  : 
+  10           *              - Compilateur     : c51  V5.02    1995 KEIL ELECTRONIC
+  11           *              - Linling locator : l51  V3.52    1995 KEIL ELECTRONIC
+  12           *              - Formatter       : o51  V2.1     1995 KEIL ELECTRONIC
+  13           */
+  14          /*======================================================================== */ 
+  15          /*Historique  :                                                            */
+  16          /*======================================================================== */ 
+  17          
+  18          /* ______ INCLUDE - DIRECTIVES _____________________________    */
+  19          #include "types.h"
+  20          #include "main.h"
+  21          #include "uart1.h"
+  22          
+  23          #include "c8051F12.h"
+  24          
+  25          
+  26          
+  27          /* ______ DEFINE-DECLARATIONS ______________________________    */
+  28          
+  29          /*      STRUCTURE DES FIFOS */
+  30          /*      Taille d'un message Tx ou Rx                            */
+  31          #define TAILLE_MAX_FIFO_DIALCPU (220U) /**< Taille fifo  UART1*/
+  32          
+  33          /**
+  34           * \struct      S_T_FIFO_RX_DIALCPU
+  35           * \brief       definition de la structure pour la fifo de réception de l'UART1
+  36           */
+  37          typedef struct T_FIFO_RX_DIALCPU
+  38          {
+  39                  u8sod u8_status;                                                                /**< taux de remplissage de la fifo     */
+  40                  u8sod u8_ptr_lecture;                                                   /**< indice de lecture                          */
+  41                  u8sod u8_ptr_ecriture;                                                  /**< indice d'ecriture                          */
+  42                  u8sod u8_donnee[TAILLE_MAX_FIFO_DIALCPU];       /**< tableau de donnees                         */
+  43          }S_T_FIFO_RX_DIALCPU;
+  44          
+  45          static S_T_FIFO_RX_DIALCPU s_fifo_dialcpu_rx; /**< Fifo de réception UART1*/
+  46          
+  47          /**
+  48           * \brief       definition de la structure pour la fifo d'émission de l'UART1
+  49           */
+  50          typedef struct T_FIFO_TX_DIALCPU
+  51          {
+  52                  u8sod u8_status;                                                        /**< taux de remplissage de la fifo     */
+  53                  u8sod u8_ptr_lecture;                                           /**< indice de lecture                          */
+  54                  u8sod u8_ptr_ecriture;                                          /**< indice d'ecriture                          */
+  55                  u8sod u8_donnee[TAILLE_MAX_FIFO_DIALCPU];       /**< tableau de donnees                         */
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 2   
+
+  56          }S_T_FIFO_TX_DIALCPU;
+  57          static S_T_FIFO_TX_DIALCPU s_fifo_dialcpu_tx; /**< Fifo d'emission UART1*/
+  58          
+  59          
+  60          
+  61          u8sod u8_amorcage_tx_uart1;
+  62          
+  63          /*      Résultat de traitement                                                  */
+  64          #define FIFO_DIAL_OK 0x69       /**< Traitement OK */
+  65          #define FIFO_DIAL_KO 0x96       /**< Traitement KO */
+  66          
+  67          /*_______IV - PROTOTYPES IMPORTES _____________________MODULE______________*/
+  68          static void IT_Uart1 (void);
+  69          
+  70          /*_______V - PROCEDURE ____________________________________________________*/
+  71          
+  72          /* Delimitation de la zone d'entete du fichier pour l'analyse LDRA */
+  73          /*LDRA_HEADER_END */
+  74          
+  75          
+  76          /** \brief Renvoi le status de la fifo tx uart1
+  77            *
+  78            * \return s_fifo_dialcpu_tx.u8_status : nombre d'octets dans fifo tx
+  79            *
+  80            * <b>Ressource :</b> - #s_fifo_dialcpu_tx <br>
+  81            *
+  82            */
+  83          u8sod u8NbOctetsDansFifoTxDialCPU( void)
+  84          {
+  85   1              return (s_fifo_dialcpu_tx.u8_status);   
+  86   1      } /* u8NbOctetsDansFifoTxDialCPU */
+  87          
+  88          /** \brief Renvoi le status de la fifo rx uart1
+  89            *
+  90            * \return s_fifo_dialcpu_rx.u8_status : nombre d'octets dans fifo rx
+  91            *
+  92            * \author JP
+  93            *
+  94            * <b>Ressource :</b> - #s_fifo_dialcpu_rx <br>
+  95            *
+  96            */
+  97          u8sod u8NbOctetsDansFifoRxDialCPU( void)
+  98          {
+  99   1              return (s_fifo_dialcpu_rx.u8_status);   
+ 100   1      } /* u8NbOctetsDansFifoRxDialCPU */
+ 101          
+ 102          
+ 103          /** \brief Empile un octet dans la fifo RX
+ 104            *             renvoie #FIFO_DIAL_OK si l'octet a ete empile, #FIFO_DIAL_KO sinon
+ 105            *
+ 106            * \param[in] u8_octet_rx : donnee a ecrire dans la fifo (0 a 255)
+ 107            *
+ 108            * \return loc_u8_retour_EDFRX: #FIFO_DIAL_OK ou #FIFO_DIAL_KO
+ 109            *
+ 110            *
+ 111            * <b>Ressource :</b> - #s_fifo_dialcpu_rx <br>
+ 112            *
+ 113            */
+ 114          u8sod u8EcritDansFifoRxDialCPU (u8sod u8_octet_rx)
+ 115          {
+ 116   1              /*      Retour de fonction                                                                                                      */
+ 117   1              u8sod loc_u8_retour_EDFRX;
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 3   
+
+ 118   1      
+ 119   1              /*      par defaut, Pas d'octet empile                                                                          */
+ 120   1              loc_u8_retour_EDFRX = (u8sod)(FIFO_DIAL_KO);
+ 121   1      
+ 122   1              /*      A-t-on de la place dans la fifo?                                                                        */
+ 123   1              if (s_fifo_dialcpu_rx.u8_status < (u8sod)(TAILLE_MAX_FIFO_DIALCPU))
+ 124   1              {
+ 125   2                      /*      OUI => on y ajoute l'octet a empiler                                                    */
+ 126   2                      s_fifo_dialcpu_rx.u8_donnee[s_fifo_dialcpu_rx.u8_ptr_ecriture] = u8_octet_rx;
+ 127   2      
+ 128   2                      /*      MAJ du pointeur d'ecriture                                                                              */
+ 129   2                      s_fifo_dialcpu_rx.u8_ptr_ecriture = (u8sod)(s_fifo_dialcpu_rx.u8_ptr_ecriture + 1U);
+ 130   2      
+ 131   2                      /*      Gestion de la rotation de la fifo                                                               */
+ 132   2                      if (s_fifo_dialcpu_rx.u8_ptr_ecriture >= (u8sod)(TAILLE_MAX_FIFO_DIALCPU))
+ 133   2                      {
+ 134   3                              s_fifo_dialcpu_rx.u8_ptr_ecriture = 0U;
+ 135   3                      }
+ 136   2      
+ 137   2                      /*      MAJ du nombre de donnees dans la fifo                                                   */
+ 138   2                      s_fifo_dialcpu_rx.u8_status = (u8sod)(s_fifo_dialcpu_rx.u8_status + 1U);
+ 139   2      
+ 140   2                      /*      Octet empile!                                                                                                   */
+ 141   2                      loc_u8_retour_EDFRX = (u8sod)(FIFO_DIAL_OK);
+ 142   2              }
+ 143   1      
+ 144   1              return (loc_u8_retour_EDFRX);
+ 145   1      }       /* u8EcritDansFifoRxDialCPU */
+ 146          
+ 147          /** \brief Empile un octet dans la fifo TX
+ 148            *             renvoie #FIFO_DIAL_OK si l'octet a ete empile, #FIFO_DIAL_KO sinon
+ 149            *
+ 150            * \param[in] u8_octet_tx : donnee a ecrire dans la fifo (0 a 255)
+ 151            *
+ 152            * \return loc_u8_retour_EDFTX: #FIFO_DIAL_OK ou #FIFO_DIAL_KO
+ 153            *
+ 154            * \author SR
+ 155            *
+ 156            * <b>Ressource :</b> - #s_fifo_dialcpu_tx <br>
+ 157            * <b>Ressource :</b> - #ES1 sbit <br>
+ 158            *
+ 159            */
+ 160          u8sod u8EcritDansFifoTxDialCPU (u8sod u8_octet_tx)
+ 161          {
+ 162   1              /*      Retour de fonction                                                                                                      */
+ 163   1              u8sod loc_u8_retour_EDFTX;
+ 164   1      
+ 165   1              /*      par defaut, Pas d'octet empile                                                                          */
+ 166   1              loc_u8_retour_EDFTX = (u8sod)(FIFO_DIAL_KO);
+ 167   1      
+ 168   1      
+ 169   1              /*      A-t-on de la place dans la fifo?                                                                        */
+ 170   1              if (s_fifo_dialcpu_tx.u8_status < (u8sod)(TAILLE_MAX_FIFO_DIALCPU))
+ 171   1              {
+ 172   2                      /*------------------DEBUT DE ZONE ININTERRUPTIBLE- -----------------*/
+ 173   2                      EIE2 &= ~0x40U; /* on masque l'it Uart 1 */
+ 174   2      
+ 175   2                      /*      OUI => on y ajoute l'octet a empiler                                                    */
+ 176   2                      s_fifo_dialcpu_tx.u8_donnee[s_fifo_dialcpu_tx.u8_ptr_ecriture] = u8_octet_tx;
+ 177   2      
+ 178   2                      /*      MAJ du pointeur d'ecriture                                                                              */
+ 179   2                      s_fifo_dialcpu_tx.u8_ptr_ecriture = (u8sod)(s_fifo_dialcpu_tx.u8_ptr_ecriture + 1U);
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 4   
+
+ 180   2      
+ 181   2                      /*      Gestion de la rotation de la fifo                                                               */
+ 182   2                      if (s_fifo_dialcpu_tx.u8_ptr_ecriture >= (u8sod)(TAILLE_MAX_FIFO_DIALCPU))
+ 183   2                      {
+ 184   3                              s_fifo_dialcpu_tx.u8_ptr_ecriture = 0U;
+ 185   3                      }
+ 186   2      
+ 187   2                      /*      MAJ du nombre de donnees dans la fifo                                                   */
+ 188   2                      s_fifo_dialcpu_tx.u8_status = (u8sod)(s_fifo_dialcpu_tx.u8_status + 1U);
+ 189   2      
+ 190   2                      /*      Octet empile!                                                                                                   */
+ 191   2                      loc_u8_retour_EDFTX = (u8sod)(FIFO_DIAL_OK);
+ 192   2      
+ 193   2                      /* it autorise */
+ 194   2                      EIE2 |= 0x40;
+ 195   2                      /*-------------------FIN  DE ZONE ININTERRUPTIBLES -----------------*/
+ 196   2              }
+ 197   1      
+ 198   1              return (loc_u8_retour_EDFTX);
+ 199   1      }       /* u8EcritDansFifoTxDialCPU */
+ 200          
+ 201          
+ 202          /** \brief Depile un octet de la fifo Tx
+ 203            *             renvoie 0 s'il n'y a pas d'octets dans la fifo
+ 204            *
+ 205            * \return loc_u8_retour_DUODFTX: un octet (0 a 255)
+ 206            *
+ 207            * <b>Ressource :</b> - #s_fifo_dialcpu_tx <br>
+ 208            *
+ 209            */
+ 210          u8sod u8DepileUnOctetDeFifoTxDialCPU(void)
+ 211          {
+ 212   1              /*      Retour de fonction                                                                                                 */
+ 213   1              u8sod loc_u8_retour_DUODFTX;
+ 214   1      
+ 215   1              /*      A-t-on un octet a depiler?                                                                                 */
+ 216   1              if(s_fifo_dialcpu_tx.u8_status != 0U)
+ 217   1              {
+ 218   2                      /*      OUI => on depile!                                                                                          */
+ 219   2      
+ 220   2                      /*      Lecture de la valeur a depiler                                                             */
+ 221   2                      loc_u8_retour_DUODFTX = s_fifo_dialcpu_tx.u8_donnee[s_fifo_dialcpu_tx.u8_ptr_lecture];
+ 222   2      
+ 223   2                      /*      MAJ du pointeur de lecture                                                                         */
+ 224   2                      s_fifo_dialcpu_tx.u8_ptr_lecture = (u8sod)(s_fifo_dialcpu_tx.u8_ptr_lecture + 1U);
+ 225   2      
+ 226   2                      /*      Gestion de la rotation de la fifo                                                          */
+ 227   2                      if (s_fifo_dialcpu_tx.u8_ptr_lecture >= (u8sod)(TAILLE_MAX_FIFO_DIALCPU))
+ 228   2                      {
+ 229   3                              s_fifo_dialcpu_tx.u8_ptr_lecture = 0U;
+ 230   3                      }
+ 231   2      
+ 232   2                      /*      MAJ du nombre d'octets de la fifo                                                          */
+ 233   2                      s_fifo_dialcpu_tx.u8_status = (u8sod)(s_fifo_dialcpu_tx.u8_status - 1U);
+ 234   2      
+ 235   2              }
+ 236   1              else
+ 237   1              {
+ 238   2                      /*      NON => on renvoie la valeur 0                                                              */
+ 239   2                      loc_u8_retour_DUODFTX = 0U;
+ 240   2              }
+ 241   1      
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 5   
+
+ 242   1              return (loc_u8_retour_DUODFTX);
+ 243   1      
+ 244   1      }       /* u8DepileUnOctetDeFifoTxDialCPU */
+ 245          
+ 246          
+ 247          /** \brief Depile un octet de la fifo des octets recus
+ 248            *             renvoie 0 s'il n'y a pas d'octets dans la fifo
+ 249            *
+ 250            * \return loc_u8_retour: un octet (0 a 255)
+ 251            *
+ 252            * <b>Ressource :</b> - #s_fifo_dialcpu_rx <br>
+ 253            *
+ 254            */
+ 255          u8sod u8DepileUnOctetDeFifoRxDialCPU(void)
+ 256          {
+ 257   1              /*      Retour de fonction                                                                                                      */
+ 258   1              u8sod loc_u8_retour;
+ 259   1      
+ 260   1              /*      A-t-on un octet a depiler?                                                                                      */
+ 261   1              if(s_fifo_dialcpu_rx.u8_status != 0U)
+ 262   1              {
+ 263   2                      /*      OUI => on depile!                                                                                               */
+ 264   2                      /*------------------DEBUT DE ZONE ININTERRUPTIBLES -----------------*/
+ 265   2                      EIE2 &= ~0x40U; /* on masque l'it Uart 0 */
+ 266   2      
+ 267   2                      /*      Lecture de la valeur a depiler                                                                  */
+ 268   2                      loc_u8_retour = s_fifo_dialcpu_rx.u8_donnee[s_fifo_dialcpu_rx.u8_ptr_lecture];
+ 269   2      
+ 270   2                      /*      MAJ du pointeur de lecture                                                                              */
+ 271   2                      s_fifo_dialcpu_rx.u8_ptr_lecture = (u8sod)(s_fifo_dialcpu_rx.u8_ptr_lecture + 1U);
+ 272   2      
+ 273   2                      /*      Gestion de la rotation de la fifo                                                               */
+ 274   2                      if (s_fifo_dialcpu_rx.u8_ptr_lecture >= (u8sod)(TAILLE_MAX_FIFO_DIALCPU))
+ 275   2                      {
+ 276   3                              s_fifo_dialcpu_rx.u8_ptr_lecture = 0U;
+ 277   3                      }
+ 278   2      
+ 279   2                      /*      MAJ du nombre d'octets de la fifo                                                               */
+ 280   2                      s_fifo_dialcpu_rx.u8_status = (u8sod)(s_fifo_dialcpu_rx.u8_status - 1U);
+ 281   2      
+ 282   2                      /* it autorise */
+ 283   2                      EIE2 |= 0x40U;
+ 284   2                      /*--------------------FIN DE ZONE ININTERRUPTIBLES -----------------*/
+ 285   2              }
+ 286   1              else
+ 287   1              {
+ 288   2                      /*      NON => on renvoie la valeur 0                                                                   */
+ 289   2                      loc_u8_retour = 0U;
+ 290   2              }
+ 291   1      
+ 292   1              return (loc_u8_retour);
+ 293   1      
+ 294   1      }       /* u8DepileUnOctetDeFifoRxDialCPU */
+ 295          
+ 296          
+ 297          /** \brief Renvoie le sommet de la fifo rx (avec l'offset passe)
+ 298            *             mais sans depiler. renvoie 0 s'il n'y a pas d'octets dans la fifo
+ 299            *
+ 300            * \param[in] u8_offset: numero de l'octet que l'on souhaite recuperer (0 a #TAILLE_MAX_FIFO_DIALCPU-1)
+ 301            *
+ 302            * \return loc_u8_retour_DUODFRX: un octet (0 a 255)
+ 303            *
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 6   
+
+ 304            *
+ 305            * <b>Ressource :</b> - #s_fifo_dialcpu_rx <br>
+ 306            *
+ 307            */
+ 308          u8sod u8SommetDeFifoRxDialCPU(u8sod u8_offset)
+ 309          {
+ 310   1              /*      Retour de fonction                                                                                                      */
+ 311   1              u8sod loc_u8_retour_DUODFRX;
+ 312   1              u16sod loc_u16_ptr_lec;
+ 313   1      
+ 314   1              /*      A-t-on un octet a lire ?                                                                                        */
+ 315   1              if(s_fifo_dialcpu_rx.u8_status >= u8_offset)
+ 316   1              {
+ 317   2                      /*      OUI => on calcul l'adresse de lecture                                                   */
+ 318   2                      loc_u16_ptr_lec = (u16sod)(s_fifo_dialcpu_rx.u8_ptr_lecture) + (u16sod)(u8_offset);
+ 319   2                      /* on gere la rotation */
+ 320   2                      if (loc_u16_ptr_lec >= (u16sod)(TAILLE_MAX_FIFO_DIALCPU))
+ 321   2                      {
+ 322   3                              loc_u16_ptr_lec -= (u16sod)(TAILLE_MAX_FIFO_DIALCPU);
+ 323   3                      }
+ 324   2                      /* on lit l'octet */
+ 325   2                      loc_u8_retour_DUODFRX = s_fifo_dialcpu_rx.u8_donnee[(u8sod)(loc_u16_ptr_lec)];
+ 326   2              }
+ 327   1              else
+ 328   1              {
+ 329   2                      /*      NON => on renvoie la valeur 0                                                                   */
+ 330   2                      loc_u8_retour_DUODFRX = 0U;
+ 331   2              }
+ 332   1      
+ 333   1              return (loc_u8_retour_DUODFRX);
+ 334   1      } /* u8SommetDeFifoRxDialCPU */
+ 335          
+ 336          
+ 337          /** \brief Initialise les Fifos Uart1
+ 338            *
+ 339            * \return void
+ 340            *
+ 341            *
+ 342            */
+ 343          void Init_Uart1(void)
+ 344          {
+ 345   1              /*      Compteur de boucle                                                                                                                              */
+ 346   1              u8sod loc_u8_cpt;
+ 347   1      
+ 348   1      
+ 349   1              /*      Amorçage de l'interruption TX de l'UART1                                                        */
+ 350   1              u8_amorcage_tx_uart1 = EMISSION_UART1_TERMINEE; /* INIT */ 
+ 351   1              Ecriture_Statut_Emission_Uart1((u8sod)(EMISSION_UART1_TERMINEE));
+ 352   1      
+ 353   1              /*      RAZ pointeur d'ecriture                                                                                                         */
+ 354   1              s_fifo_dialcpu_rx.u8_ptr_ecriture = 0U;
+ 355   1              s_fifo_dialcpu_tx.u8_ptr_ecriture = 0U;
+ 356   1      
+ 357   1              /*      RAZ pointeur de lecture                                                                                                         */
+ 358   1              s_fifo_dialcpu_rx.u8_ptr_lecture = 0U;
+ 359   1              s_fifo_dialcpu_tx.u8_ptr_lecture = 0U;
+ 360   1      
+ 361   1              /*      RAZ taux de remplissage de la fifo                                                                                      */
+ 362   1              s_fifo_dialcpu_rx.u8_status = 0U;
+ 363   1              s_fifo_dialcpu_tx.u8_status = 0U;
+ 364   1      
+ 365   1              /*      RAZ des donnees dans la fifo                                                                                            */
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 7   
+
+ 366   1              for(loc_u8_cpt=0U ;loc_u8_cpt<(u8sod)(TAILLE_MAX_FIFO_DIALCPU);loc_u8_cpt++)
+ 367   1              {
+ 368   2                      s_fifo_dialcpu_rx.u8_donnee[(u8sod)(loc_u8_cpt)]=0U;
+ 369   2                      s_fifo_dialcpu_tx.u8_donnee[(u8sod)(loc_u8_cpt)]=0U;
+ 370   2              }
+ 371   1      }/* Init_Uart1 */
+ 372          
+ 373          /** \brief Ecriture statut emission de UART1
+ 374            *
+ 375            * \param[in] u8_statut_tx_uart1 : #EMISSION_UART1_EN_COURS ou
+ 376            * #EMISSION_UART1_TERMINEE
+ 377            *
+ 378            * \return void
+ 379            *
+ 380            * \details Si positionnement de l'entree a :
+ 381            *                             - #EMISSION_UART1_TERMINEE : il n'y a
+ 382            *                             plus de donnees a emettre vers l'UART1
+ 383            *                             - #EMISSION_UART1_EN_COURS : il a des
+ 384            *                             donnees a emettre vers l'UART1
+ 385            *
+ 386            * <b>Ressource :</b> - #u8_amorcage_tx_uart1 <br>
+ 387            * <b>Ressource :</b> - #IE Special Function Register <br>
+ 388            * <b>Ressource :</b> - #SFRPAGE Special Function Register <br>
+ 389            * <b>Ressource :</b> - #ES1 sbit <br>
+ 390            *
+ 391            */
+ 392          void Ecriture_Statut_Emission_Uart1(u8sod u8_statut_tx_uart1)
+ 393          {
+ 394   1              u8sod loc_u8_sfrpage;
+ 395   1              u8sod loc_u8_eie2;
+ 396   1      
+ 397   1              /* si l'interruption est autorisee, il faut la masquer */
+ 398   1              loc_u8_eie2 = EIE2;
+ 399   1              EIE2 &= ~0x40U;
+ 400   1      
+ 401   1              /*      Test de la validite des donnees en entree de la fonction                        */
+ 402   1              if (((u8sod)(EMISSION_UART1_EN_COURS) == u8_statut_tx_uart1)||
+ 403   1                        ((u8sod)(EMISSION_UART1_TERMINEE) == u8_statut_tx_uart1))
+ 404   1              {
+ 405   2                      /*      Amorçage de l'interruption TX de l'UART (si pas déjà amorcée)   */
+ 406   2                      if(EMISSION_UART1_TERMINEE == u8_amorcage_tx_uart1)
+ 407   2                      {
+ 408   3                              if ((u8sod)(EMISSION_UART1_EN_COURS) == u8_statut_tx_uart1)
+ 409   3                              {
+ 410   4                                      /* dans le cas du passage en emission, il faut autoriser l'interruption */
+ 411   4                                      loc_u8_sfrpage = SFRPAGE;
+ 412   4                                      SFRPAGE = UART1_PAGE;
+ 413   4                                      TI1=1;
+ 414   4                                      SFRPAGE = loc_u8_sfrpage;
+ 415   4                              }
+ 416   3                      }
+ 417   2                      
+ 418   2                      /*      MAJ de l'amorçage de l'interruption TX de
+ 419   2                       *      l'UART1                         */
+ 420   2                      u8_amorcage_tx_uart1 = u8_statut_tx_uart1;
+ 421   2              }
+ 422   1      
+ 423   1              /* on remet le registre EIE2 */
+ 424   1              EIE2 = loc_u8_eie2;
+ 425   1      
+ 426   1      }/* Ecriture_Statut_Emission_Uart1 */
+ 427          
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 8   
+
+ 428          /** \brief Autorise les interruptions de l'uart1
+ 429            *
+ 430            * \return void
+ 431            *
+ 432            * <b>Ressource :</b> - #ES1 Special Function Register <br>
+ 433            *
+ 434            */
+ 435          void Autorise_Interruption_Uart1(void)
+ 436          {
+ 437   1              /* on autorise l'it Uart1 */
+ 438   1              EIE2 |= 0x40U;
+ 439   1      }
+ 440          
+ 441          /** \brief ROUTINE D'INTERRUPTION (IT UART1)
+ 442            *
+ 443            * \return void
+ 444            *
+ 445            * <b>SOURCE      :</b> IT_Uart1 <br>
+ 446            * <b>FREQUENCE   :</b> xxxx bauds <br>
+ 447            * <b>PRIORITE    :</b> 0 <br>
+ 448            *
+ 449            * <b>Ressource :</b> - #SFRPAGE Special Function Register <br>
+ 450            * <b>Ressource :</b> - #RI1 et #TI1 Special Function Register <br>
+ 451            * <b>Ressource :</b> - #SBUF0 Special Function Register <br>
+ 452            */
+ 453          
+ 454          /*      COMPILATIONS SUR CIBLE LOWS                             */
+ 455          static void IT_Uart1 (void) interrupt 20
+ 456          {
+ 457   1              u8sod   loc_u8_sfrpage;
+ 458   1      
+ 459   1              /*      Mémorisation de l'index courant du tableau des registres spéciaux du            */
+ 460   1              /*      microcontroleur                                                                                                                         */
+ 461   1              loc_u8_sfrpage = SFRPAGE;
+ 462   1      
+ 463   1              /*      Accès aux registres de configuration de l'UART1                                                         */
+ 464   1              SFRPAGE = UART1_PAGE;
+ 465   1      
+ 466   1              /*      ***************************************************************************     */
+ 467   1              /*      Interruption générée par la réception d'un octet                                                        */
+ 468   1              /*      ***************************************************************************     */
+ 469   1              if (1U==RI1)
+ 470   1              {
+ 471   2                      /*      Interruption acquitée                                                                                                   */ 
+ 472   2                      RI1 = 0U;
+ 473   2      
+ 474   2                      /*      Memorisation de l'octet receptionne dans une fifo                                               */
+ 475   2                      u8EcritDansFifoRxDialCPU((u8sod)(SBUF0));
+ 476   2              }
+ 477   1      
+ 478   1              /*      ***************************************************************************     */
+ 479   1              /*      Interruption générée pour l'émission d'un octet                                                         */
+ 480   1              /*      ***************************************************************************     */
+ 481   1              if (1U==TI1)
+ 482   1              {
+ 483   2                      /*      Interruption acquitée                                                                                           */ 
+ 484   2                      TI1=0U;
+ 485   2      
+ 486   2                      /*      Est-ce qu'il y reste des octets à émettre?                                                              */
+ 487   2                      if (u8NbOctetsDansFifoTxDialCPU() != 0U)
+ 488   2                      {
+ 489   3                              /*      OUI     => on émet                                                                                                              */
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 9   
+
+ 490   3                              SBUF0 = u8DepileUnOctetDeFifoTxDialCPU();
+ 491   3                      }
+ 492   2                      else
+ 493   2                      {
+ 494   3                              /*      NON => Emission terminée!                                                                                       */
+ 495   3                              Ecriture_Statut_Emission_Uart1((u8sod)(EMISSION_UART1_TERMINEE));
+ 496   3                      }
+ 497   2              }
+ 498   1      
+ 499   1              /*      Repositionnement de l'index courant du tableau des registres spéciaux           */
+ 500   1              /*      du microcontroleur à sa valeur initiale                                                                         */
+ 501   1              SFRPAGE = loc_u8_sfrpage;
+ 502   1      
+ 503   1      }/* IT_Uart1 */
+ 504          
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 10  
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION u8NbOctetsDansFifoTxDialCPU (BEGIN)
+                                           ; SOURCE LINE # 83
+                                           ; SOURCE LINE # 84
+                                           ; SOURCE LINE # 85
+0000 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx
+0003 E0                MOVX    A,@DPTR
+0004 FF                MOV     R7,A
+                                           ; SOURCE LINE # 86
+0005 22                RET     
+             ; FUNCTION u8NbOctetsDansFifoTxDialCPU (END)
+
+             ; FUNCTION u8NbOctetsDansFifoRxDialCPU (BEGIN)
+                                           ; SOURCE LINE # 97
+                                           ; SOURCE LINE # 98
+                                           ; SOURCE LINE # 99
+0000 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx
+0003 E0                MOVX    A,@DPTR
+0004 FF                MOV     R7,A
+                                           ; SOURCE LINE # 100
+0005 22                RET     
+             ; FUNCTION u8NbOctetsDansFifoRxDialCPU (END)
+
+             ; FUNCTION _u8EcritDansFifoRxDialCPU (BEGIN)
+                                           ; SOURCE LINE # 114
+;---- Variable 'u8_octet_rx' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 115
+                                           ; SOURCE LINE # 120
+;---- Variable 'loc_u8_retour_EDFRX' assigned to Register 'R6' ----
+0000 7E96              MOV     R6,#096H
+                                           ; SOURCE LINE # 123
+0002 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx
+0005 E0                MOVX    A,@DPTR
+0006 C3                CLR     C
+0007 94DC              SUBB    A,#0DCH
+0009 5025              JNC     ?C0003
+                                           ; SOURCE LINE # 124
+                                           ; SOURCE LINE # 126
+000B 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx+02H
+000E E0                MOVX    A,@DPTR
+000F FD                MOV     R5,A
+0010 2400        R     ADD     A,#LOW s_fifo_dialcpu_rx+03H
+0012 F582              MOV     DPL,A
+0014 E4                CLR     A
+0015 3400        R     ADDC    A,#HIGH s_fifo_dialcpu_rx+03H
+0017 F583              MOV     DPH,A
+0019 EF                MOV     A,R7
+001A F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 129
+001B ED                MOV     A,R5
+001C 04                INC     A
+001D 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx+02H
+0020 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 132
+0021 C3                CLR     C
+0022 94DC              SUBB    A,#0DCH
+0024 4002              JC      ?C0004
+                                           ; SOURCE LINE # 133
+                                           ; SOURCE LINE # 134
+0026 E4                CLR     A
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 11  
+
+0027 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 135
+0028         ?C0004:
+                                           ; SOURCE LINE # 138
+0028 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx
+002B E0                MOVX    A,@DPTR
+002C 04                INC     A
+002D F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 141
+002E 7E69              MOV     R6,#069H
+                                           ; SOURCE LINE # 142
+0030         ?C0003:
+                                           ; SOURCE LINE # 144
+0030 AF06              MOV     R7,AR6
+                                           ; SOURCE LINE # 145
+0032 22                RET     
+             ; FUNCTION _u8EcritDansFifoRxDialCPU (END)
+
+             ; FUNCTION _u8EcritDansFifoTxDialCPU (BEGIN)
+                                           ; SOURCE LINE # 160
+;---- Variable 'u8_octet_tx' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 161
+                                           ; SOURCE LINE # 166
+;---- Variable 'loc_u8_retour_EDFTX' assigned to Register 'R6' ----
+0000 7E96              MOV     R6,#096H
+                                           ; SOURCE LINE # 170
+0002 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx
+0005 E0                MOVX    A,@DPTR
+0006 C3                CLR     C
+0007 94DC              SUBB    A,#0DCH
+0009 502B              JNC     ?C0006
+                                           ; SOURCE LINE # 171
+                                           ; SOURCE LINE # 173
+000B 53E7BF            ANL     EIE2,#0BFH
+                                           ; SOURCE LINE # 176
+000E 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx+02H
+0011 E0                MOVX    A,@DPTR
+0012 FD                MOV     R5,A
+0013 2400        R     ADD     A,#LOW s_fifo_dialcpu_tx+03H
+0015 F582              MOV     DPL,A
+0017 E4                CLR     A
+0018 3400        R     ADDC    A,#HIGH s_fifo_dialcpu_tx+03H
+001A F583              MOV     DPH,A
+001C EF                MOV     A,R7
+001D F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 179
+001E ED                MOV     A,R5
+001F 04                INC     A
+0020 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx+02H
+0023 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 182
+0024 C3                CLR     C
+0025 94DC              SUBB    A,#0DCH
+0027 4002              JC      ?C0007
+                                           ; SOURCE LINE # 183
+                                           ; SOURCE LINE # 184
+0029 E4                CLR     A
+002A F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 185
+002B         ?C0007:
+                                           ; SOURCE LINE # 188
+002B 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 12  
+
+002E E0                MOVX    A,@DPTR
+002F 04                INC     A
+0030 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 191
+0031 7E69              MOV     R6,#069H
+                                           ; SOURCE LINE # 194
+0033 43E740            ORL     EIE2,#040H
+                                           ; SOURCE LINE # 196
+0036         ?C0006:
+                                           ; SOURCE LINE # 198
+0036 AF06              MOV     R7,AR6
+                                           ; SOURCE LINE # 199
+0038 22                RET     
+             ; FUNCTION _u8EcritDansFifoTxDialCPU (END)
+
+             ; FUNCTION u8DepileUnOctetDeFifoTxDialCPU (BEGIN)
+                                           ; SOURCE LINE # 210
+;---- Variable 'loc_u8_retour_DUODFTX' assigned to Register 'R3' ----
+                                           ; SOURCE LINE # 211
+                                           ; SOURCE LINE # 216
+0000 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx
+0003 E0                MOVX    A,@DPTR
+0004 6023              JZ      ?C0009
+                                           ; SOURCE LINE # 217
+                                           ; SOURCE LINE # 221
+0006 A3                INC     DPTR
+0007 E0                MOVX    A,@DPTR
+0008 FE                MOV     R6,A
+0009 2400        R     ADD     A,#LOW s_fifo_dialcpu_tx+03H
+000B F582              MOV     DPL,A
+000D E4                CLR     A
+000E 3400        R     ADDC    A,#HIGH s_fifo_dialcpu_tx+03H
+0010 F583              MOV     DPH,A
+0012 E0                MOVX    A,@DPTR
+0013 FB                MOV     R3,A
+                                           ; SOURCE LINE # 224
+0014 EE                MOV     A,R6
+0015 04                INC     A
+0016 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx+01H
+0019 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 227
+001A C3                CLR     C
+001B 94DC              SUBB    A,#0DCH
+001D 4002              JC      ?C0010
+                                           ; SOURCE LINE # 228
+                                           ; SOURCE LINE # 229
+001F E4                CLR     A
+0020 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 230
+0021         ?C0010:
+                                           ; SOURCE LINE # 233
+0021 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx
+0024 E0                MOVX    A,@DPTR
+0025 14                DEC     A
+0026 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 235
+0027 8002              SJMP    ?C0011
+0029         ?C0009:
+                                           ; SOURCE LINE # 237
+                                           ; SOURCE LINE # 239
+0029 E4                CLR     A
+002A FB                MOV     R3,A
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 13  
+
+                                           ; SOURCE LINE # 240
+002B         ?C0011:
+                                           ; SOURCE LINE # 242
+002B AF03              MOV     R7,AR3
+                                           ; SOURCE LINE # 244
+002D 22                RET     
+             ; FUNCTION u8DepileUnOctetDeFifoTxDialCPU (END)
+
+             ; FUNCTION u8DepileUnOctetDeFifoRxDialCPU (BEGIN)
+                                           ; SOURCE LINE # 255
+;---- Variable 'loc_u8_retour' assigned to Register 'R3' ----
+                                           ; SOURCE LINE # 256
+                                           ; SOURCE LINE # 261
+0000 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx
+0003 E0                MOVX    A,@DPTR
+0004 6029              JZ      ?C0013
+                                           ; SOURCE LINE # 262
+                                           ; SOURCE LINE # 265
+0006 53E7BF            ANL     EIE2,#0BFH
+                                           ; SOURCE LINE # 268
+0009 A3                INC     DPTR
+000A E0                MOVX    A,@DPTR
+000B FE                MOV     R6,A
+000C 2400        R     ADD     A,#LOW s_fifo_dialcpu_rx+03H
+000E F582              MOV     DPL,A
+0010 E4                CLR     A
+0011 3400        R     ADDC    A,#HIGH s_fifo_dialcpu_rx+03H
+0013 F583              MOV     DPH,A
+0015 E0                MOVX    A,@DPTR
+0016 FB                MOV     R3,A
+                                           ; SOURCE LINE # 271
+0017 EE                MOV     A,R6
+0018 04                INC     A
+0019 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx+01H
+001C F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 274
+001D C3                CLR     C
+001E 94DC              SUBB    A,#0DCH
+0020 4002              JC      ?C0014
+                                           ; SOURCE LINE # 275
+                                           ; SOURCE LINE # 276
+0022 E4                CLR     A
+0023 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 277
+0024         ?C0014:
+                                           ; SOURCE LINE # 280
+0024 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx
+0027 E0                MOVX    A,@DPTR
+0028 14                DEC     A
+0029 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 283
+002A 43E740            ORL     EIE2,#040H
+                                           ; SOURCE LINE # 285
+002D 8002              SJMP    ?C0015
+002F         ?C0013:
+                                           ; SOURCE LINE # 287
+                                           ; SOURCE LINE # 289
+002F E4                CLR     A
+0030 FB                MOV     R3,A
+                                           ; SOURCE LINE # 290
+0031         ?C0015:
+                                           ; SOURCE LINE # 292
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 14  
+
+0031 AF03              MOV     R7,AR3
+                                           ; SOURCE LINE # 294
+0033 22                RET     
+             ; FUNCTION u8DepileUnOctetDeFifoRxDialCPU (END)
+
+             ; FUNCTION _u8SommetDeFifoRxDialCPU (BEGIN)
+                                           ; SOURCE LINE # 308
+;---- Variable 'loc_u8_retour_DUODFRX' assigned to Register 'R6' ----
+;---- Variable 'u8_offset' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 309
+                                           ; SOURCE LINE # 315
+0000 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx
+0003 E0                MOVX    A,@DPTR
+0004 C3                CLR     C
+0005 9F                SUBB    A,R7
+0006 4024              JC      ?C0017
+                                           ; SOURCE LINE # 316
+                                           ; SOURCE LINE # 318
+0008 EF                MOV     A,R7
+0009 FD                MOV     R5,A
+000A A3                INC     DPTR
+000B E0                MOVX    A,@DPTR
+000C 2D                ADD     A,R5
+000D FD                MOV     R5,A
+000E E4                CLR     A
+000F 33                RLC     A
+0010 FC                MOV     R4,A
+;---- Variable 'loc_u16_ptr_lec' assigned to Register 'R4/R5' ----
+                                           ; SOURCE LINE # 320
+0011 C3                CLR     C
+0012 ED                MOV     A,R5
+0013 94DC              SUBB    A,#0DCH
+0015 EC                MOV     A,R4
+0016 9400              SUBB    A,#00H
+0018 4004              JC      ?C0018
+                                           ; SOURCE LINE # 321
+                                           ; SOURCE LINE # 322
+001A 7424              MOV     A,#024H
+001C 2D                ADD     A,R5
+001D FD                MOV     R5,A
+                                           ; SOURCE LINE # 323
+001E         ?C0018:
+                                           ; SOURCE LINE # 325
+001E 7400        R     MOV     A,#LOW s_fifo_dialcpu_rx+03H
+0020 2D                ADD     A,R5
+0021 F582              MOV     DPL,A
+0023 E4                CLR     A
+0024 3400        R     ADDC    A,#HIGH s_fifo_dialcpu_rx+03H
+0026 F583              MOV     DPH,A
+0028 E0                MOVX    A,@DPTR
+0029 FE                MOV     R6,A
+                                           ; SOURCE LINE # 326
+002A 8002              SJMP    ?C0019
+002C         ?C0017:
+                                           ; SOURCE LINE # 328
+                                           ; SOURCE LINE # 330
+002C E4                CLR     A
+002D FE                MOV     R6,A
+                                           ; SOURCE LINE # 331
+002E         ?C0019:
+                                           ; SOURCE LINE # 333
+002E AF06              MOV     R7,AR6
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 15  
+
+                                           ; SOURCE LINE # 334
+0030 22                RET     
+             ; FUNCTION _u8SommetDeFifoRxDialCPU (END)
+
+             ; FUNCTION Init_Uart1 (BEGIN)
+                                           ; SOURCE LINE # 343
+                                           ; SOURCE LINE # 344
+                                           ; SOURCE LINE # 350
+0000 900000      R     MOV     DPTR,#u8_amorcage_tx_uart1
+0003 7496              MOV     A,#096H
+0005 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 351
+0006 FF                MOV     R7,A
+0007 120000      R     LCALL   _Ecriture_Statut_Emission_Uart1
+                                           ; SOURCE LINE # 354
+000A E4                CLR     A
+000B 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx+02H
+000E F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 355
+000F 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx+02H
+0012 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 358
+0013 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx+01H
+0016 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 359
+0017 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx+01H
+001A F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 362
+001B 900000      R     MOV     DPTR,#s_fifo_dialcpu_rx
+001E F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 363
+001F 900000      R     MOV     DPTR,#s_fifo_dialcpu_tx
+0022 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 366
+;---- Variable 'loc_u8_cpt' assigned to Register 'R7' ----
+0023 FF                MOV     R7,A
+0024         ?C0021:
+                                           ; SOURCE LINE # 367
+                                           ; SOURCE LINE # 368
+0024 7400        R     MOV     A,#LOW s_fifo_dialcpu_rx+03H
+0026 2F                ADD     A,R7
+0027 F582              MOV     DPL,A
+0029 E4                CLR     A
+002A 3400        R     ADDC    A,#HIGH s_fifo_dialcpu_rx+03H
+002C F583              MOV     DPH,A
+002E E4                CLR     A
+002F F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 369
+0030 7400        R     MOV     A,#LOW s_fifo_dialcpu_tx+03H
+0032 2F                ADD     A,R7
+0033 F582              MOV     DPL,A
+0035 E4                CLR     A
+0036 3400        R     ADDC    A,#HIGH s_fifo_dialcpu_tx+03H
+0038 F583              MOV     DPH,A
+003A E4                CLR     A
+003B F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 370
+003C 0F                INC     R7
+003D EF                MOV     A,R7
+003E B4DCE3            CJNE    A,#0DCH,?C0021
+                                           ; SOURCE LINE # 371
+0041         ?C0024:
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 16  
+
+0041 22                RET     
+             ; FUNCTION Init_Uart1 (END)
+
+             ; FUNCTION _Ecriture_Statut_Emission_Uart1 (BEGIN)
+                                           ; SOURCE LINE # 392
+;---- Variable 'u8_statut_tx_uart1' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 393
+                                           ; SOURCE LINE # 398
+;---- Variable 'loc_u8_eie2' assigned to Register 'R6' ----
+0000 AEE7              MOV     R6,EIE2
+                                           ; SOURCE LINE # 399
+0002 53E7BF            ANL     EIE2,#0BFH
+                                           ; SOURCE LINE # 403
+0005 EF                MOV     A,R7
+0006 6469              XRL     A,#069H
+0008 6005              JZ      ?C0026
+000A EF                MOV     A,R7
+000B 6496              XRL     A,#096H
+000D 701A              JNZ     ?C0025
+000F         ?C0026:
+                                           ; SOURCE LINE # 404
+                                           ; SOURCE LINE # 406
+000F 900000      R     MOV     DPTR,#u8_amorcage_tx_uart1
+0012 E0                MOVX    A,@DPTR
+0013 6496              XRL     A,#096H
+0015 700D              JNZ     ?C0027
+                                           ; SOURCE LINE # 407
+                                           ; SOURCE LINE # 408
+0017 EF                MOV     A,R7
+0018 B46909            CJNE    A,#069H,?C0027
+                                           ; SOURCE LINE # 409
+                                           ; SOURCE LINE # 411
+;---- Variable 'loc_u8_sfrpage' assigned to Register 'R5' ----
+001B AD84              MOV     R5,SFRPAGE
+                                           ; SOURCE LINE # 412
+001D 758401            MOV     SFRPAGE,#01H
+                                           ; SOURCE LINE # 413
+0020 D299              SETB    TI1
+                                           ; SOURCE LINE # 414
+0022 8D84              MOV     SFRPAGE,R5
+                                           ; SOURCE LINE # 415
+                                           ; SOURCE LINE # 416
+0024         ?C0027:
+                                           ; SOURCE LINE # 420
+0024 900000      R     MOV     DPTR,#u8_amorcage_tx_uart1
+0027 EF                MOV     A,R7
+0028 F0                MOVX    @DPTR,A
+                                           ; SOURCE LINE # 421
+0029         ?C0025:
+                                           ; SOURCE LINE # 424
+0029 AF06              MOV     R7,AR6
+002B 8FE7              MOV     EIE2,R7
+                                           ; SOURCE LINE # 426
+002D 22                RET     
+             ; FUNCTION _Ecriture_Statut_Emission_Uart1 (END)
+
+             ; FUNCTION Autorise_Interruption_Uart1 (BEGIN)
+                                           ; SOURCE LINE # 435
+                                           ; SOURCE LINE # 436
+                                           ; SOURCE LINE # 438
+0000 43E740            ORL     EIE2,#040H
+                                           ; SOURCE LINE # 439
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 17  
+
+0003 22                RET     
+             ; FUNCTION Autorise_Interruption_Uart1 (END)
+
+             ; FUNCTION IT_Uart1 (BEGIN)
+0000 C0E0              PUSH    ACC
+0002 C083              PUSH    DPH
+0004 C082              PUSH    DPL
+0006 C0D0              PUSH    PSW
+0008 75D000            MOV     PSW,#00H
+000B C003              PUSH    AR3
+000D C004              PUSH    AR4
+000F C005              PUSH    AR5
+0011 C006              PUSH    AR6
+0013 C007              PUSH    AR7
+                                           ; SOURCE LINE # 455
+                                           ; SOURCE LINE # 461
+;---- Variable 'loc_u8_sfrpage' assigned to Register 'R4' ----
+0015 AC84              MOV     R4,SFRPAGE
+                                           ; SOURCE LINE # 464
+0017 758401            MOV     SFRPAGE,#01H
+                                           ; SOURCE LINE # 469
+001A 309807            JNB     RI1,?C0031
+                                           ; SOURCE LINE # 470
+                                           ; SOURCE LINE # 472
+001D C298              CLR     RI1
+                                           ; SOURCE LINE # 475
+001F AF99              MOV     R7,SBUF0
+0021 120000      R     LCALL   _u8EcritDansFifoRxDialCPU
+                                           ; SOURCE LINE # 476
+0024         ?C0031:
+                                           ; SOURCE LINE # 481
+0024 309914            JNB     TI1,?C0032
+                                           ; SOURCE LINE # 482
+                                           ; SOURCE LINE # 484
+0027 C299              CLR     TI1
+                                           ; SOURCE LINE # 487
+0029 120000      R     LCALL   u8NbOctetsDansFifoTxDialCPU
+002C EF                MOV     A,R7
+002D 6007              JZ      ?C0033
+                                           ; SOURCE LINE # 488
+                                           ; SOURCE LINE # 490
+002F 120000      R     LCALL   u8DepileUnOctetDeFifoTxDialCPU
+0032 8F99              MOV     SBUF0,R7
+                                           ; SOURCE LINE # 491
+0034 8005              SJMP    ?C0032
+0036         ?C0033:
+                                           ; SOURCE LINE # 493
+                                           ; SOURCE LINE # 495
+0036 7F96              MOV     R7,#096H
+0038 120000      R     LCALL   _Ecriture_Statut_Emission_Uart1
+                                           ; SOURCE LINE # 496
+                                           ; SOURCE LINE # 497
+003B         ?C0032:
+                                           ; SOURCE LINE # 501
+003B AF04              MOV     R7,AR4
+003D 8F84              MOV     SFRPAGE,R7
+                                           ; SOURCE LINE # 503
+003F D007              POP     AR7
+0041 D006              POP     AR6
+0043 D005              POP     AR5
+0045 D004              POP     AR4
+0047 D003              POP     AR3
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 18  
+
+0049 D0D0              POP     PSW
+004B D082              POP     DPL
+004D D083              POP     DPH
+004F D0E0              POP     ACC
+0051 32                RETI    
+             ; FUNCTION IT_Uart1 (END)
+
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 19  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+u8sod. . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+u16sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_INT    -----  2
+u32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_LONG   -----  4
+s8sod. . . . . . . . . . . . . . . . .  TYPEDEF  -----  CHAR     -----  1
+s16sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  INT      -----  2
+s32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  LONG     -----  4
+f32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  FLOAT    -----  4
+f64sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  FLOAT    -----  4
+Init_Uart1 . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  loc_u8_cpt . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+_Ecriture_Statut_Emission_Uart1. . . .  PUBLIC   CODE   PROC     0000H  -----
+  u8_statut_tx_uart1 . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  loc_u8_sfrpage . . . . . . . . . . .  * REG *  DATA   U_CHAR   0005H  1
+  loc_u8_eie2. . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0006H  1
+Autorise_Interruption_Uart1. . . . . .  PUBLIC   CODE   PROC     0000H  -----
+_u8EcritDansFifoTxDialCPU. . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  u8_octet_tx. . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  loc_u8_retour_EDFTX. . . . . . . . .  * REG *  DATA   U_CHAR   0006H  1
+u8NbOctetsDansFifoRxDialCPU. . . . . .  PUBLIC   CODE   PROC     0000H  -----
+_u8SommetDeFifoRxDialCPU . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  u8_offset. . . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  loc_u8_retour_DUODFRX. . . . . . . .  * REG *  DATA   U_CHAR   0006H  1
+  loc_u16_ptr_lec. . . . . . . . . . .  * REG *  DATA   U_INT    0004H  2
+u8DepileUnOctetDeFifoRxDialCPU . . . .  PUBLIC   CODE   PROC     0000H  -----
+  loc_u8_retour. . . . . . . . . . . .  * REG *  DATA   U_CHAR   0003H  1
+SFRPAGE. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0084H  1
+TCON . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+CPT0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+CPT1CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+FLSTAT . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0088H  1
+SCON0. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0098H  1
+SCON1. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0098H  1
+SBUF0. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0099H  1
+IE . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A8H  1
+IP . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B8H  1
+SMB0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C0H  1
+TMR2CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+TMR3CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+TMR4CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+PSW. . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D0H  1
+PCA0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D8H  1
+EIE2 . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E7H  1
+ADC0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E8H  1
+ADC2CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E8H  1
+SPI0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00F8H  1
+TI1. . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      0099H  1
+RI1. . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      0098H  1
+T_FIFO_RX_DIALCPU. . . . . . . . . . .  * TAG *  -----  STRUCT   -----  223
+  u8_status. . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+  u8_ptr_lecture . . . . . . . . . . .  MEMBER   -----  U_CHAR   0001H  1
+  u8_ptr_ecriture. . . . . . . . . . .  MEMBER   -----  U_CHAR   0002H  1
+  u8_donnee. . . . . . . . . . . . . .  MEMBER   -----  ARRAY    0003H  220
+S_T_FIFO_RX_DIALCPU. . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  223
+  u8_status. . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+  u8_ptr_lecture . . . . . . . . . . .  MEMBER   -----  U_CHAR   0001H  1
+  u8_ptr_ecriture. . . . . . . . . . .  MEMBER   -----  U_CHAR   0002H  1
+  u8_donnee. . . . . . . . . . . . . .  MEMBER   -----  ARRAY    0003H  220
+C51 COMPILER V9.59.0.0   UART1                                                             07/21/2022 15:12:56 PAGE 20  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+s_fifo_dialcpu_rx. . . . . . . . . . .  STATIC   XDATA  STRUCT   0000H  223
+T_FIFO_TX_DIALCPU. . . . . . . . . . .  * TAG *  -----  STRUCT   -----  223
+  u8_status. . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+  u8_ptr_lecture . . . . . . . . . . .  MEMBER   -----  U_CHAR   0001H  1
+  u8_ptr_ecriture. . . . . . . . . . .  MEMBER   -----  U_CHAR   0002H  1
+  u8_donnee. . . . . . . . . . . . . .  MEMBER   -----  ARRAY    0003H  220
+S_T_FIFO_TX_DIALCPU. . . . . . . . . .  TYPEDEF  -----  STRUCT   -----  223
+  u8_status. . . . . . . . . . . . . .  MEMBER   -----  U_CHAR   0000H  1
+  u8_ptr_lecture . . . . . . . . . . .  MEMBER   -----  U_CHAR   0001H  1
+  u8_ptr_ecriture. . . . . . . . . . .  MEMBER   -----  U_CHAR   0002H  1
+  u8_donnee. . . . . . . . . . . . . .  MEMBER   -----  ARRAY    0003H  220
+s_fifo_dialcpu_tx. . . . . . . . . . .  STATIC   XDATA  STRUCT   00DFH  223
+u8_amorcage_tx_uart1 . . . . . . . . .  PUBLIC   XDATA  U_CHAR   01BEH  1
+IT_Uart1 . . . . . . . . . . . . . . .  STATIC   CODE   PROC     0000H  -----
+  loc_u8_sfrpage . . . . . . . . . . .  * REG *  DATA   U_CHAR   0004H  1
+u8NbOctetsDansFifoTxDialCPU. . . . . .  PUBLIC   CODE   PROC     0000H  -----
+_u8EcritDansFifoRxDialCPU. . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  u8_octet_rx. . . . . . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+  loc_u8_retour_EDFRX. . . . . . . . .  * REG *  DATA   U_CHAR   0006H  1
+u8DepileUnOctetDeFifoTxDialCPU . . . .  PUBLIC   CODE   PROC     0000H  -----
+  loc_u8_retour_DUODFTX. . . . . . . .  * REG *  DATA   U_CHAR   0003H  1
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    465    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    447    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

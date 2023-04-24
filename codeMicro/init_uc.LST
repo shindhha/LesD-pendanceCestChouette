@@ -1,0 +1,841 @@
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE INIT_UC
+OBJECT MODULE PLACED IN init_uc.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\c51.exe init_uc.c DB OE BR INCDIR(C:\SiLabs\MCU\Inc) LARGE SB CD OR
+
+line level    source
+
+   1          /**
+   2           * \file      init_uc.c
+   3           * \author    JP
+   4           * \date      29/09/2014
+   5           * \version   00
+   6           * \brief     module d'initialisation du microcontroleur C8051F126
+   7           *
+   8           * \details
+   9           *              - Projet                  : SAFeasy-200
+  10           *              - Compilateur     : c51  V5.02    1995 KEIL ELECTRONIC
+  11           *              - Linling locator : l51  V3.52    1995 KEIL ELECTRONIC
+  12           *              - Formatter       : o51  V2.1     1995 KEIL ELECTRONIC
+  13           */
+  14          /*======================================================================== */ 
+  15          /*Historique  :                                                            */
+  16          /*======================================================================== */ 
+  17          
+  18          /* ______ INCLUDE - DIRECTIVES _____________________________    */
+  19          #include "types.h"
+  20          #include "main.h"
+  21          #include "C51F120.h"
+  22          #include "init_uc.h"
+  23          
+  24          /* ______ DEFINE-DECLARATIONS ______________________________    */
+  25          
+  26          /**
+  27           *    \name Declaration des SFR (Special Function Register) 
+  28           */
+  29          /**@{*/
+  30          #if (TEST_GCC)
+              /*      COMPILATIONS SUR PC                                             */
+              u8sod SFRPAGE;    /**< SFR PAGE SELECT                              */
+              u8sod TCON   ;    /**< TIMER CONTROL                                */
+              u8sod TMOD   ;    /**< TIMER MODE                                   */
+              u8sod PLL0CN ;    /**< PLL 0 CONTROL                                */
+              u8sod TL0    ;    /**< TIMER 0 - LOW BYTE                           */
+              u8sod OSCICN ;    /**< INTERNAL OSCILLATOR CONTROL                  */
+              u8sod OSCXCN ;    /**< EXTERNAL OSCILLATOR CONTROL                  */
+              u8sod TL1    ;    /**< TIMER 1 - LOW BYTE                           */
+              u8sod TH0    ;    /**< TIMER 0 - HIGH BYTE                          */
+              u8sod TH1    ;    /**< TIMER 1 - HIGH BYTE                          */
+              u8sod PLL0DIV;    /**< PLL 0 DIVIDER                                */
+              u8sod CKCON  ;    /**< TIMER 0/1 CLOCK CONTROL                      */
+              u8sod PLL0MUL;    /**< PLL 0 MULTIPLIER                             */
+              u8sod PLL0FLT;    /**< PLL 0 FILTER                                 */
+              u8sod CLKSEL ;    /**< SYSTEM CLOCK SELECT                          */
+              u8sod SPI0CFG;    /**< SPI 0 CONFIGURATION                          */
+              u8sod P4MDOUT;    /**< PORT 4 OUTPUT MODE                           */
+              u8sod SPI0CKR;    /**< SPI 0 CLOCK RATE CONTROL                     */
+              u8sod P5MDOUT;    /**< PORT 5 OUTPUT MODE                           */
+              u8sod P5     ;    /**< PORT 5                                       */
+              u8sod EMI0TC ;    /**< EMIF TIMING CONTROL                          */
+              u8sod CCH0CN ;    /**< CACHE CONTROL                                */
+              u8sod EMI0CF ;    /**< EMIF CONFIGURATION                           */
+              u8sod P2MDOUT;    /**< PORT 2 OUTPUT MODE CONFIGURATION             */
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 2   
+
+              u8sod P3MDOUT;    /**< PORT 3 OUTPUT MODE CONFIGURATION             */
+              u8sod FLSCL  ;    /**< FLASH SCALE                                  */
+              u8sod SMB0CN ;    /**< SMBUS 0 CONTROL                              */
+              u8sod SMB0CR ;    /**< SMBUS 0 CLOCK RATE                           */
+              u8sod XBR0   ;    /**< CROSSBAR CONFIGURATION REGISTER 0            */
+              u8sod XBR1   ;    /**< CROSSBAR CONFIGURATION REGISTER 1            */
+              u8sod XBR2   ;    /**< CROSSBAR CONFIGURATION REGISTER 2            */
+              u8sod RSTSRC ;    /**< RESET SOURCE                                 */
+              u8sod SPI0CN ;    /**< SPI 0 CONTROL                                */  
+              u8sod WDTCN  ;    /**< WATCHDOG TIMER CONTROL                       */
+              u8sod IE     ;    /**< INTERRUPT ENABLE                             */
+              u8sod EIE1   ;    /**< EXTERNAL INTERRUPT ENABLE 1                  */
+              u8sod EIE2   ;    /**< EXTERNAL INTERRUPT ENABLE 2  */
+              u8sod TMR3CF ;    /**< TIMER 3 CONFIGURATION                        */
+              u8sod RCAP3H ;    /**< TIMER 3 CAPTURE REGISTER - HIGH BYTE         */
+              u8sod RCAP3L ;    /**< TIMER 3 CAPTURE REGISTER - LOW BYTE          */
+              u8sod TMR4CF ;    /**< TIMER 4 CONFIGURATION                        */
+              u8sod RCAP4L ;    /**< TIMER 4 CAPTURE REGISTER - LOW BYTE          */
+              u8sod RCAP4H ;    /**< TIMER 4 CAPTURE REGISTER - HIGH BYTE         */
+              u8sod TMR4CN ;    /**< TIMER 4 CONTROL                              */
+              u8sod TMR4L ;     /**< TIMER 4 - LOW BYTE                           */
+              u8sod P6MDOUT;    /**< PORT 6 OUTPUT MODE                           */
+              u8sod P7MDOUT;    /**< PORT 7 OUTPUT MODE                           */
+              u8sod P1MDOUT;    /**< PORT 1 OUTPUT MODE                           */
+              u8sod P1     ;    /**< PORT 1                                       */
+              u8sod P0MDOUT;    /**< PORT 0 OUTPUT MODE                           */
+              u8sod P0     ;    /**< PORT 0                                       */  
+              u8sod CPT0CN ;    /**< COMPARATOR 0 CONTROL                         */
+              u8sod CPT1CN ;    /**< COMPARATOR 1 CONTROL                         */
+              u8sod P2     ;    /**< PORT 2                                          */
+              u8sod P3     ;    /**< PORT 3                                          */
+              u8sod P4     ;    /**< PORT 4                                          */
+              u8sod REF0CN ;    /**< VOLTAGE REFERENCE 0 CONTROL                                       */
+              u8sod AMX0CF;     /**< ADC 0 MUX CONFIGURATION                                           */
+              u8sod AMX0SL;     /**< ADC 0 MUX CHANNEL SELECTION                                       */
+              u8sod ADC0CF;     /**< ADC 0 CONFIGURATION                                                       */
+              u8sod ADC0CN;     /**< ADC 0 CONTROL                                                                     */     
+              u8sod DAC0H;      /**< DAC0 High byte                       */
+              u8sod DAC0L;      /**< DAC0 Low byte                        */
+              u8sod DAC0CN;     /**< DAC0 Control                         */
+              u8sod P6;         /**< PORT 6                                       */
+              u8sod P7;         /**< PORT 7                                       */
+              
+              #else
+ 100          /*      COMPILATIONS SUR CIBLE                          */
+ 101          sfr SFRPAGE  = 0x84U;    /**< SFR PAGE SELECT                              */
+ 102          sfr TCON     = 0x88U;    /**< TIMER CONTROL                                */
+ 103          sfr TMOD     = 0x89U;    /**< TIMER MODE                                   */
+ 104          sfr PLL0CN   = 0x89U;    /**< PLL 0 CONTROL                                */
+ 105          sfr TL0      = 0x8AU;    /**< TIMER 0 - LOW BYTE                           */
+ 106          sfr OSCICN   = 0x8AU;    /**< INTERNAL OSCILLATOR CONTROL                  */
+ 107          sfr OSCXCN   = 0x8CU;    /**< EXTERNAL OSCILLATOR CONTROL                  */
+ 108          sfr TL1      = 0x8BU;    /**< TIMER 1 - LOW BYTE                           */
+ 109          sfr TH0      = 0x8CU;    /**< TIMER 0 - HIGH BYTE                          */
+ 110          sfr TH1      = 0x8DU;    /**< TIMER 1 - HIGH BYTE                          */
+ 111          sfr PLL0DIV  = 0x8DU;    /**< PLL 0 DIVIDER                                */
+ 112          sfr CKCON    = 0x8EU;    /**< TIMER 0/1 CLOCK CONTROL                      */
+ 113          sfr PLL0MUL  = 0x8EU;    /**< PLL 0 MULTIPLIER                             */
+ 114          sfr PLL0FLT  = 0x8FU;    /**< PLL 0 FILTER                                 */
+ 115          sfr CLKSEL   = 0x97U;    /**< SYSTEM CLOCK SELECT                          */
+ 116          sfr SPI0CFG  = 0x9AU;    /**< SPI 0 CONFIGURATION                          */
+ 117          sfr P4MDOUT  = 0x9CU;    /**< PORT 4 OUTPUT MODE                           */
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 3   
+
+ 118          sfr SPI0CKR  = 0x9DU;    /**< SPI 0 CLOCK RATE CONTROL                     */
+ 119          sfr P5MDOUT  = 0x9DU;    /**< PORT 5 OUTPUT MODE                           */
+ 120          sfr P5       = 0xD8U;    /**< PORT 5                                       */
+ 121          sfr EMI0TC   = 0xA1U;    /**< EMIF TIMING CONTROL                          */
+ 122          sfr CCH0CN   = 0xA1U;    /**< CACHE CONTROL                                */
+ 123          sfr EMI0CF   = 0xA3U;    /**< EMIF CONFIGURATION                           */
+ 124          sfr P2MDOUT  = 0xA6U;    /**< PORT 2 OUTPUT MODE CONFIGURATION             */
+ 125          sfr P3MDOUT  = 0xA7U;    /**< PORT 3 OUTPUT MODE CONFIGURATION             */
+ 126          sfr FLSCL    = 0xB7U;    /**< FLASH SCALE                                  */
+ 127          sfr SMB0CN   = 0xC0U;    /**< SMBUS 0 CONTROL                              */
+ 128          sfr SMB0CR   = 0xCFU;    /**< SMBUS 0 CLOCK RATE                           */
+ 129          sfr XBR0     = 0xE1U;    /**< CROSSBAR CONFIGURATION REGISTER 0            */
+ 130          sfr XBR1     = 0xE2U;    /**< CROSSBAR CONFIGURATION REGISTER 1            */
+ 131          sfr XBR2     = 0xE3U;    /**< CROSSBAR CONFIGURATION REGISTER 2            */
+ 132          sfr RSTSRC   = 0xEFU;    /**< RESET SOURCE                                 */
+ 133          sfr SPI0CN   = 0xF8U;    /**< SPI 0 CONTROL                                */   
+ 134          sfr WDTCN    = 0xFFU;    /**< WATCHDOG TIMER CONTROL                       */
+ 135          sfr IE       = 0xA8U;    /**< INTERRUPT ENABLE                             */
+ 136          sfr EIE1     = 0xE6U;    /**< EXTERNAL INTERRUPT ENABLE 1                  */
+ 137          sfr EIE2     = 0xE7U;   /**< EXTERNAL INTERRUPT ENABLE 2  */
+ 138          sfr TMR3CF   = 0xC9U;    /**< TIMER 3 CONFIGURATION                        */
+ 139          sfr RCAP3H   = 0xCBU;    /**< TIMER 3 CAPTURE REGISTER - HIGH BYTE         */
+ 140          sfr RCAP3L   = 0xCAU;    /**< TIMER 3 CAPTURE REGISTER - LOW BYTE          */
+ 141          sfr TMR4CF   = 0xC9U;    /**< TIMER 4 CONFIGURATION                        */
+ 142          sfr RCAP4L   = 0xCAU;    /**< TIMER 4 CAPTURE REGISTER - LOW BYTE          */
+ 143          sfr RCAP4H   = 0xCBU;    /**< TIMER 4 CAPTURE REGISTER - HIGH BYTE         */
+ 144          sfr TMR4CN   = 0xC8U;    /**< TIMER 4 CONTROL                              */
+ 145          sfr TMR4L    = 0xCCU;    /**< TIMER 4 - LOW BYTE                           */
+ 146          sfr P6MDOUT  = 0x9EU;    /**< PORT 6 OUTPUT MODE                           */
+ 147          sfr P7MDOUT  = 0x9FU;    /**< PORT 7 OUTPUT MODE                           */
+ 148          sfr P1MDOUT  = 0xA5U;    /**< PORT 1 OUTPUT MODE                           */
+ 149          sfr P1       = 0x90U;    /**< PORT 1                                       */
+ 150          sfr P0MDOUT  = 0xA4U;    /**< PORT 0 OUTPUT MODE                           */
+ 151          sfr P0       = 0x80U;    /**< PORT 0                                       */   
+ 152          sfr CPT0CN   = 0x88U;   /**< COMPARATOR 0 CONTROL                         */
+ 153          sfr CPT1CN   = 0x88U;    /**< COMPARATOR 1 CONTROL                         */
+ 154          sfr P2       = 0xA0U;    /**< PORT 2                                          */
+ 155          sfr P3       = 0xB0U;    /**< PORT 3                                          */
+ 156          sfr P4       = 0xC8U;    /**< PORT 4                                          */
+ 157          sfr REF0CN   = 0xD1U;   /**< VOLTAGE REFERENCE 0 CONTROL                                        */
+ 158          sfr AMX0CF   = 0xBAU;   /**< ADC 0 MUX CONFIGURATION                                            */
+ 159          sfr AMX0SL   = 0xBBU;   /**< ADC 0 MUX CHANNEL SELECTION                                        */
+ 160          sfr ADC0CF   = 0xBCU;   /**< ADC 0 CONFIGURATION                                                        */
+ 161          sfr ADC0CN   = 0xE8U;   /**< ADC 0 CONTROL                                                              */      
+ 162          sfr DAC0H    = 0xD3U;    /**< DAC0 High byte                        */
+ 163          sfr DAC0L    = 0xD2U;    /**< DAC0 Low byte                         */
+ 164          sfr DAC0CN   = 0xD4U;    /**< DAC0 Control                          */
+ 165          sfr P6       = 0xE8U;    /**< PORT 6                                       */
+ 166          sfr P7       = 0xF8U;    /**< PORT 7                                       */
+ 167          #endif
+ 168          /**@}*/
+ 169          
+ 170          /* prototypes locaux */
+ 171          static void Init_Reset_Sources(void);
+ 172          static void Init_Oscillateur(void);
+ 173          static void Init_Timer4 (void);
+ 174          static void Init_Port_IO(void);
+ 175          static u8sod u8_Test_Pll_Lock(void);
+ 176          static void DAC_Init(void);
+ 177          
+ 178          /* ______ PROCEDURES _______________________________________    */
+ 179          /* Delimitation de la zone d'entete du fichier pour l'analyse LDRA */
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 4   
+
+ 180          /*LDRA_HEADER_END */
+ 181          
+ 182          /** \brief Configuration des sources de reset interne
+ 183            *
+ 184            * \return void
+ 185            *
+ 186            * <b>Ressource :</b> - Special Function Register WDTCN <br>
+ 187            * <b>Ressource :</b> - Special Function Register SFRPAGE <br>
+ 188            * <b>Ressource :</b> - Special Function Register RSTSRC <br>
+ 189            */
+ 190          static void Init_Reset_Sources(void)
+ 191          {
+ 192   1              /* desactivation du watchdog interne au microcontroleur */
+ 193   1              /* sequence d'ecriture de 0xDE suivi de 0xAD dans WDTCN */
+ 194   1          WDTCN     = 0xDEU;
+ 195   1          WDTCN     = 0xADU;
+ 196   1              
+ 197   1              /* selection du banc de special registers */
+ 198   1          SFRPAGE   = LEGACY_PAGE;
+ 199   1              
+ 200   1              /* Desactivation de toutes les source de reset interne  */
+ 201   1          RSTSRC    = 0x00U;
+ 202   1      }/*Init_Reset_Sources*/
+ 203          
+ 204          /** \brief Test du verouillage de la PLL interne au microcontroleur
+ 205            *
+ 206            * \return void
+ 207            *
+ 208            * <b>Ressource :</b> - Special Function Register PLL0CN <br>
+ 209            */
+ 210          static u8sod u8_Test_Pll_Lock(void)
+ 211          {
+ 212   1              return((u8sod)(PLL0CN & 0x10U));
+ 213   1      }/*u8_Test_Pll_Lock*/
+ 214          
+ 215          /** \brief Configuration de l'oscillateur et de la PLL interne
+ 216            *
+ 217            * \return void
+ 218            *
+ 219            * <b>Ressource :</b> - Special Function Register SFRPAGE <br>
+ 220            * <b>Ressource :</b> - Special Function Register OSCICN <br>
+ 221            * <b>Ressource :</b> - Special Function Register CCH0CN <br>
+ 222            * <b>Ressource :</b> - Special Function Register FLSCL <br>
+ 223            * <b>Ressource :</b> - Special Function Register CCH0CN <br>
+ 224            * <b>Ressource :</b> - Special Function Register PLL0CN <br>
+ 225            * <b>Ressource :</b> - Special Function Register PLL0DIV <br>
+ 226            * <b>Ressource :</b> - Special Function Register PLL0FLT <br>
+ 227            * <b>Ressource :</b> - Special Function Register PLL0MUL <br>
+ 228            * <b>Ressource :</b> - Special Function Register CLKSEL <br>
+ 229            */
+ 230          static void Init_Oscillateur(void)
+ 231          {
+ 232   1              u16sod loc_u16_cpt = 0U;
+ 233   1      
+ 234   1              /* selection du banc de special registers */
+ 235   1              SFRPAGE   = CONFIG_PAGE;
+ 236   1              /*activation de l'horloge CMOS externe */
+ 237   1              OSCXCN    = 0x20U;
+ 238   1              /*PLL Reference Clock Source is External Oscillator*/
+ 239   1              PLL0CN    = 0x04U;
+ 240   1              /* configuration des temps d'acces en memoire flash */
+ 241   1              /* desactivation du cache prefetch engine */
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 5   
+
+ 242   1              CCH0CN    &= 0xDFU;
+ 243   1               /* selection du banc de special registers */
+ 244   1              SFRPAGE   = LEGACY_PAGE;
+ 245   1              /* config temps d'acces */
+ 246   1              FLSCL     = 0x90U;
+ 247   1              /* selection du banc de special registers */
+ 248   1              SFRPAGE   = CONFIG_PAGE;
+ 249   1               /* activation du cache prefetch engine */
+ 250   1              CCH0CN    |= 0x20U;
+ 251   1      
+ 252   1      #if (TYPE_OSC_EXTERNE == TYPE_OSC_27MHZ)
+ 253   1              /* configuration de la PLL interne */
+ 254   1              /* activation de la PLL interne */
+ 255   1              PLL0CN    |= 0x01U;
+ 256   1              /* division de la reference par 6 */
+ 257   1              PLL0DIV   = 0x06U;
+ 258   1              /* selection du filtre de la PLL */
+ 259   1              PLL0FLT   = 0x21U;
+ 260   1              /* multiplication par 11 de la frequence */
+ 261   1              PLL0MUL   = 0x0BU;
+ 262   1      #else
+                      /* configuration de la PLL interne */
+                      /* activation de la PLL interne */
+                      PLL0CN    |= 0x01U;
+                      /* division de la reference */
+                      PLL0DIV   = 0x01U;
+                      /* selection du filtre de la PLL */
+                      PLL0FLT   = 0x21U;
+                      /* multiplication par 2 de la frequence */
+                      PLL0MUL   = 0x02U;
+              #endif
+ 273   1      
+ 274   1              /* boucle d'attente de l'initialisation de la PLL */
+ 275   1              for (loc_u16_cpt = 0U; loc_u16_cpt < 15U; loc_u16_cpt++)
+ 276   1                      {
+ 277   2                              ;  /* duree environ 5 us */
+ 278   2                      }
+ 279   1      
+ 280   1              /* activation de la PLL */
+ 281   1              PLL0CN    |= 0x02U;
+ 282   1      
+ 283   1              /* attente de verrouillage de la PLL */
+ 284   1      /* suppression de la regle LDRA 28D - "Potentially infinite loop found" */
+ 285   1      /* suppression de la regle LDRA 139S - "Construct leads to infeasible code" */
+ 286   1      /* cette boucle est normalement non infinie, mais en cas de problème, le watchdog va réseter le micro*/
+ 287   1      /*LDRA_INSPECTED 139 S */
+ 288   1      /*LDRA_INSPECTED 28 D */
+ 289   1              while (u8_Test_Pll_Lock() == 0U)
+ 290   1              {
+ 291   2                      ; /* en cas de probleme, le watchdog externe va nous resetter */
+ 292   2              }
+ 293   1      
+ 294   1              /* configuration de la source d'horloge systeme = sortie de la PLL */
+ 295   1              CLKSEL    = 0x02U;
+ 296   1              /* désactivation de l'oscillateur interne*/
+ 297   1              OSCICN    &= 0x7FU;
+ 298   1              
+ 299   1      }/*Init_Oscillateur*/
+ 300          
+ 301          /** \brief Initialisation du Timer4
+ 302            *
+ 303            * \return void
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 6   
+
+ 304            *
+ 305            */
+ 306          static void Init_Timer4 (void)
+ 307          {
+ 308   1              u8sod   loc_u8_sfrpage_save;    
+ 309   1              loc_u8_sfrpage_save = SFRPAGE;          /* sauvegarde du registre SFRPAGE */
+ 310   1      
+ 311   1              SFRPAGE   = TMR4_PAGE;                          /* Sélection de la page */
+ 312   1              TMR4CF    = 0x08U;                                      /* SYSCLK ; No toggle */
+ 313   1              TMR4CN    = 0x04U;                                      /* Timer4 enabled ; AutoReload Mode */
+ 314   1      #if (TYPE_OSC_EXTERNE == TYPE_OSC_27MHZ)
+ 315   1              RCAP4H    = 0xFFU;                                      /* Pour un Timer a 5us */
+ 316   1              RCAP4L    = 0x09U;
+ 317   1      #else
+                      RCAP4H    = 0xFFU;                                      /* Pour un Timer a 5us */
+                      RCAP4L    = 0x06U;
+              #endif  
+ 321   1      
+ 322   1              SFRPAGE = loc_u8_sfrpage_save;          /* restauration du registre SFRPAGE */
+ 323   1      
+ 324   1      }/*Init_Timer4*/
+ 325          
+ 326          /** \brief Configuration des ports et des peripheriques internes
+ 327            *
+ 328            * \return void
+ 329            *
+ 330            * <b>Ressource :</b> - Special Function Register SFRPAGE <br>
+ 331            * <b>Ressource :</b> - Special Function Register XBR0, XBR1 et XBR2 <br>
+ 332            * <b>Ressource :</b> - Special Function Register P0 et P0MDOUT <br>
+ 333            * <b>Ressource :</b> - Special Function Register P1 et P1MDOUT <br>
+ 334            * <b>Ressource :</b> - Special Function Register P2MDOUT, P3MDOUT, P4MDOUT <br>
+ 335            * <b>Ressource :</b> - Special Function Register P5, P5MDOUT <br>
+ 336            * <b>Ressource :</b> - Special Function Register P6MDOUT, P7MDOUT <br>
+ 337            */
+ 338          static void Init_Port_IO(void)
+ 339          {
+ 340   1      
+ 341   1              /* PORT  -  CROSSBAR                            - SIGNAL SCHEMA
+ 342   1               *
+ 343   1               *
+ 344   1               * P0.0  -  Unassigned,  Open-Drain, Digital    <-- unused
+ 345   1           * P0.1  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 346   1           * P0.2  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 347   1           * P0.3  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 348   1           * P0.4  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 349   1           * P0.5  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 350   1           * P0.6  -  Unassigned,  Push-Pull,  Digital        --> AUDIO_WDOG_UC
+ 351   1           * P0.7  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 352   1                                                                                                                                                                       
+ 353   1               * P1.0  -  Unassigned,  Open-Drain, Digital    <-- unused
+ 354   1           * P1.1  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 355   1           * P1.2  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 356   1           * P1.3  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 357   1           * P1.4  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 358   1           * P1.5  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 359   1           * P1.6  -  Unassigned,  Push-Pull,  Digital        --> LED_DEBUG
+ 360   1           * P1.7  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 361   1                                                                                                                                                                       
+ 362   1           * P2.0  -  INPUT,  Open-Drain, Digital                     <-- CMD_11_A
+ 363   1           * P2.1  -  INPUT,  Open-Drain, Digital                     <-- CMD_11_B
+ 364   1           * P2.2  -  INPUT,  Open-Drain, Digital                     <-- CMD_21_A
+ 365   1           * P2.3  -  INPUT,  Open-Drain, Digital                     <-- CMD_21_B
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 7   
+
+ 366   1           * P2.4  -  INPUT,  Open-Drain, Digital                     <-- ETAT_21_A
+ 367   1           * P2.5  -  INPUT,  Open-Drain, Digital                     <-- ETAT_21_B
+ 368   1           * P2.6  -  INPUT,  Open-Drain, Digital                     <-- SWITCH_AUDIO_1
+ 369   1           * P2.7  -  Unassigned,  Open-Drain, Digital        <-- unused
+ 370   1                                                                                                                                                                       
+ 371   1           * P3.0  -  OUTPUT,         pushpull, Digital               --> ETAT_11_A
+ 372   1           * P3.1  -  OUTPUT,         pushpull, Digital               --> ETAT_11_B
+ 373   1           * P3.2  -  OUTPUT,         pushpull, Digital               --> SGL_VIE_11
+ 374   1               * P3.3  -  Unassigned, Open-Drain, Digital             <-- unused
+ 375   1           * P3.4  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 376   1           * P3.5  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 377   1           * P3.6  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 378   1           * P3.7  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 379   1                                                                                                                                                                       
+ 380   1           * P4.0  -  OUTPUT,  pushpull, Digital                      --> P11
+ 381   1           * P4.1  -  OUTPUT,  pushpull, Digital                      --> P12
+ 382   1           * P4.2  -  Unassigned,     Open-Drain, Digital             --> SW_ANN_ON_1
+ 383   1               * P4.3  -  Unassigned, Open-Drain, Digital             <-- unused
+ 384   1           * P4.4  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 385   1           * P4.5  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 386   1           * P4.6  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 387   1           * P4.7  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 388   1                                                                                                                                                                       
+ 389   1               * P5.0  -  Unassigned, Open-Drain, Digital             <-- unused
+ 390   1               * P5.1  -  Unassigned, Open-Drain, Digital             <-- unused
+ 391   1               * P5.2  -  Unassigned, Open-Drain, Digital             <-- unused
+ 392   1               * P5.3  -  Unassigned, Open-Drain, Digital             <-- unused
+ 393   1           * P5.4  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 394   1           * P5.5  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 395   1           * P5.6  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 396   1           * P5.7  -  Unassigned,     Open-Drain, Digital             <-- unused
+ 397   1              */
+ 398   1      
+ 399   1              /* Configuration PROTOTYPE */
+ 400   1              SFRPAGE   = CONFIG_PAGE;
+ 401   1              P0MDOUT   = 0x40U;              P0 = 0xFFU;
+ 402   1              P1MDOUT   = 0x40U;              P1 = 0xFFU;
+ 403   1              P2MDOUT   = 0x00U;              P2 = 0xFFU;
+ 404   1              P3MDOUT   = 0x07U;              P3 = 0xFFU;
+ 405   1              P4MDOUT   = 0x03U;              P4 = 0xFFU;
+ 406   1              P5MDOUT   = 0x00U;              P5 = 0xFFU;
+ 407   1              P6MDOUT   = 0x00U;              P6 = 0xFFU;
+ 408   1              P7MDOUT   = 0x00U;              P7 = 0xFFU;
+ 409   1              /* autorisation du crossbar */
+ 410   1              XBR2      = 0x40U;
+ 411   1      
+ 412   1      }/*Init_Port_IO*/
+ 413          
+ 414          /** \brief Inhibition de l'interruption TIMER4 du microcontroleur
+ 415            *
+ 416            * \return void
+ 417            *
+ 418            * <b>Ressource :</b> - Special Function Register EIE2 <br>
+ 419            */
+ 420          void Masque_Interruption_Timer4(void)
+ 421          {
+ 422   1              /* on autorise l'interruption timer4                                                                       */
+ 423   1              EIE2 &= ~(0x04U);
+ 424   1      }/*Masque_Interruption_Timer4*/
+ 425          
+ 426          /** \brief Autorisation de l'interruption TIMER4 du microcontroleur
+ 427            *
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 8   
+
+ 428            * \return void
+ 429            *
+ 430            * <b>Ressource :</b> - Special Function Register EIE2 <br>
+ 431            */
+ 432          void Demasque_Interruption_Timer4(void)
+ 433          {
+ 434   1              /* on autorise l'interruption timer4                                                                       */
+ 435   1              EIE2 |= 0x04U;
+ 436   1      }/*Demasque_Interruption_Timer4*/
+ 437          
+ 438          /** \brief Autorisation de toutes les interruptions du ucontroleur
+ 439            *
+ 440            * \return void
+ 441            *
+ 442            * <b>Ressource :</b> - Special Function Register IE <br>
+ 443            */
+ 444          void Autorise_toutes_interruptions(void)
+ 445          {
+ 446   1              /* mise a un du flag d'autorisation des interruptions */
+ 447   1              IE = IE | 0x80U;
+ 448   1      }/*Autorise_toutes_interruptions*/
+ 449          
+ 450          /** \brief Configuration du DAC0 du microcontroleur interne
+ 451            *
+ 452            * \return void
+ 453            *
+ 454            */
+ 455          static void DAC_Init(void)
+ 456          {
+ 457   1              u8sod   loc_u8_sfrpage_save;    
+ 458   1              loc_u8_sfrpage_save = SFRPAGE;          /* sauvegarde du registre SFRPAGE */
+ 459   1      
+ 460   1              
+ 461   1              /* selection de la page de registre du DAC0*/
+ 462   1              SFRPAGE   = DAC0_PAGE;
+ 463   1              /* init du DAC0:
+ 464   1               * DAC0 autorise: 1XXXXXXX
+ 465   1               * DAC output updates occur on Timer 4 overflow: XXX10XXX
+ 466   1               * DAC data format bits left justified: XXXXX1XX
+ 467   1               */
+ 468   1              DAC0CN    = 0x94U;
+ 469   1      
+ 470   1              /* par defaut, on sort du silence */
+ 471   1              DAC0L = 0x00U;
+ 472   1              DAC0H = 0x80U;
+ 473   1      
+ 474   1      
+ 475   1              /* il faut autoriser le bias interne */
+ 476   1              SFRPAGE = ADC0_PAGE;
+ 477   1              REF0CN = 0x02U;
+ 478   1      
+ 479   1              SFRPAGE = loc_u8_sfrpage_save;          /* restauration du registre SFRPAGE */
+ 480   1      }/*DAC_Init*/
+ 481          
+ 482          
+ 483          /** \brief Initialisation du microcontroleur interne
+ 484            *
+ 485            * \return void
+ 486            *
+ 487            */
+ 488          void Init_micro_interne(void)
+ 489          {
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 9   
+
+ 490   1              /* init des sources de reset */
+ 491   1              Init_Reset_Sources();
+ 492   1      
+ 493   1              /* init des Timers materiels*/
+ 494   1              Init_Timer4();
+ 495   1      
+ 496   1              /* init du crossbar et des ports IO */
+ 497   1              Init_Port_IO();
+ 498   1      
+ 499   1              /* Initialisation du module Commande : fait asap apres la config des ports */
+ 500   1              //Init_Commandes();
+ 501   1      
+ 502   1              /* init de l'oscillateur interne */
+ 503   1              //Init_Oscillateur();
+ 504   1      
+ 505   1              /* init DAC */
+ 506   1              //DAC_Init();
+ 507   1              
+ 508   1      }/*Init_micro_interne*/
+ 509          
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 10  
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION Init_Reset_Sources (BEGIN)
+                                           ; SOURCE LINE # 190
+                                           ; SOURCE LINE # 191
+                                           ; SOURCE LINE # 194
+0000 75FFDE            MOV     WDTCN,#0DEH
+                                           ; SOURCE LINE # 195
+0003 75FFAD            MOV     WDTCN,#0ADH
+                                           ; SOURCE LINE # 198
+0006 E4                CLR     A
+0007 F584              MOV     SFRPAGE,A
+                                           ; SOURCE LINE # 201
+0009 F5EF              MOV     RSTSRC,A
+                                           ; SOURCE LINE # 202
+000B 22                RET     
+             ; FUNCTION Init_Reset_Sources (END)
+
+             ; FUNCTION u8_Test_Pll_Lock (BEGIN)
+                                           ; SOURCE LINE # 210
+                                           ; SOURCE LINE # 211
+                                           ; SOURCE LINE # 212
+0000 E589              MOV     A,PLL0CN
+0002 5410              ANL     A,#010H
+0004 FF                MOV     R7,A
+                                           ; SOURCE LINE # 213
+0005 22                RET     
+             ; FUNCTION u8_Test_Pll_Lock (END)
+
+             ; FUNCTION Init_Oscillateur (BEGIN)
+                                           ; SOURCE LINE # 230
+                                           ; SOURCE LINE # 231
+                                           ; SOURCE LINE # 232
+;---- Variable 'loc_u16_cpt' assigned to Register 'R6/R7' ----
+0000 E4                CLR     A
+0001 FF                MOV     R7,A
+0002 FE                MOV     R6,A
+                                           ; SOURCE LINE # 235
+0003 75840F            MOV     SFRPAGE,#0FH
+                                           ; SOURCE LINE # 237
+0006 758C20            MOV     OSCXCN,#020H
+                                           ; SOURCE LINE # 239
+0009 758904            MOV     PLL0CN,#04H
+                                           ; SOURCE LINE # 242
+000C 53A1DF            ANL     CCH0CN,#0DFH
+                                           ; SOURCE LINE # 244
+000F F584              MOV     SFRPAGE,A
+                                           ; SOURCE LINE # 246
+0011 75B790            MOV     FLSCL,#090H
+                                           ; SOURCE LINE # 248
+0014 75840F            MOV     SFRPAGE,#0FH
+                                           ; SOURCE LINE # 250
+0017 43A120            ORL     CCH0CN,#020H
+                                           ; SOURCE LINE # 255
+001A 438901            ORL     PLL0CN,#01H
+                                           ; SOURCE LINE # 257
+001D 758D06            MOV     PLL0DIV,#06H
+                                           ; SOURCE LINE # 259
+0020 758F21            MOV     PLL0FLT,#021H
+                                           ; SOURCE LINE # 261
+0023 758E0B            MOV     PLL0MUL,#0BH
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 11  
+
+                                           ; SOURCE LINE # 275
+0026         ?C0003:
+                                           ; SOURCE LINE # 276
+                                           ; SOURCE LINE # 278
+0026 0F                INC     R7
+0027 BF0001            CJNE    R7,#00H,?C0016
+002A 0E                INC     R6
+002B         ?C0016:
+002B EF                MOV     A,R7
+002C 640F              XRL     A,#0FH
+002E 4E                ORL     A,R6
+002F 70F5              JNZ     ?C0003
+0031         ?C0004:
+                                           ; SOURCE LINE # 281
+0031 438902            ORL     PLL0CN,#02H
+0034         ?C0006:
+                                           ; SOURCE LINE # 289
+0034 120000      R     LCALL   u8_Test_Pll_Lock
+0037 EF                MOV     A,R7
+0038 60FA              JZ      ?C0006
+                                           ; SOURCE LINE # 290
+                                           ; SOURCE LINE # 292
+                                           ; SOURCE LINE # 295
+003A 759702            MOV     CLKSEL,#02H
+                                           ; SOURCE LINE # 297
+003D 538A7F            ANL     OSCICN,#07FH
+                                           ; SOURCE LINE # 299
+0040 22                RET     
+             ; FUNCTION Init_Oscillateur (END)
+
+             ; FUNCTION Init_Timer4 (BEGIN)
+                                           ; SOURCE LINE # 306
+                                           ; SOURCE LINE # 307
+                                           ; SOURCE LINE # 309
+;---- Variable 'loc_u8_sfrpage_save' assigned to Register 'R7' ----
+0000 AF84              MOV     R7,SFRPAGE
+                                           ; SOURCE LINE # 311
+0002 758402            MOV     SFRPAGE,#02H
+                                           ; SOURCE LINE # 312
+0005 75C908            MOV     TMR4CF,#08H
+                                           ; SOURCE LINE # 313
+0008 75C804            MOV     TMR4CN,#04H
+                                           ; SOURCE LINE # 315
+000B 75CBFF            MOV     RCAP4H,#0FFH
+                                           ; SOURCE LINE # 316
+000E 75CA09            MOV     RCAP4L,#09H
+                                           ; SOURCE LINE # 322
+0011 8F84              MOV     SFRPAGE,R7
+                                           ; SOURCE LINE # 324
+0013 22                RET     
+             ; FUNCTION Init_Timer4 (END)
+
+             ; FUNCTION Init_Port_IO (BEGIN)
+                                           ; SOURCE LINE # 338
+                                           ; SOURCE LINE # 339
+                                           ; SOURCE LINE # 400
+0000 75840F            MOV     SFRPAGE,#0FH
+                                           ; SOURCE LINE # 401
+0003 75A440            MOV     P0MDOUT,#040H
+0006 7580FF            MOV     P0,#0FFH
+                                           ; SOURCE LINE # 402
+0009 75A540            MOV     P1MDOUT,#040H
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 12  
+
+000C 7590FF            MOV     P1,#0FFH
+                                           ; SOURCE LINE # 403
+000F E4                CLR     A
+0010 F5A6              MOV     P2MDOUT,A
+0012 75A0FF            MOV     P2,#0FFH
+                                           ; SOURCE LINE # 404
+0015 75A707            MOV     P3MDOUT,#07H
+0018 75B0FF            MOV     P3,#0FFH
+                                           ; SOURCE LINE # 405
+001B 759C03            MOV     P4MDOUT,#03H
+001E 75C8FF            MOV     P4,#0FFH
+                                           ; SOURCE LINE # 406
+0021 F59D              MOV     P5MDOUT,A
+0023 75D8FF            MOV     P5,#0FFH
+                                           ; SOURCE LINE # 407
+0026 F59E              MOV     P6MDOUT,A
+0028 75E8FF            MOV     P6,#0FFH
+                                           ; SOURCE LINE # 408
+002B F59F              MOV     P7MDOUT,A
+002D 75F8FF            MOV     P7,#0FFH
+                                           ; SOURCE LINE # 410
+0030 75E340            MOV     XBR2,#040H
+                                           ; SOURCE LINE # 412
+0033 22                RET     
+             ; FUNCTION Init_Port_IO (END)
+
+             ; FUNCTION Masque_Interruption_Timer4 (BEGIN)
+                                           ; SOURCE LINE # 420
+                                           ; SOURCE LINE # 421
+                                           ; SOURCE LINE # 423
+0000 53E7FB            ANL     EIE2,#0FBH
+                                           ; SOURCE LINE # 424
+0003 22                RET     
+             ; FUNCTION Masque_Interruption_Timer4 (END)
+
+             ; FUNCTION Demasque_Interruption_Timer4 (BEGIN)
+                                           ; SOURCE LINE # 432
+                                           ; SOURCE LINE # 433
+                                           ; SOURCE LINE # 435
+0000 43E704            ORL     EIE2,#04H
+                                           ; SOURCE LINE # 436
+0003 22                RET     
+             ; FUNCTION Demasque_Interruption_Timer4 (END)
+
+             ; FUNCTION Autorise_toutes_interruptions (BEGIN)
+                                           ; SOURCE LINE # 444
+                                           ; SOURCE LINE # 445
+                                           ; SOURCE LINE # 447
+0000 43A880            ORL     IE,#080H
+                                           ; SOURCE LINE # 448
+0003 22                RET     
+             ; FUNCTION Autorise_toutes_interruptions (END)
+
+             ; FUNCTION DAC_Init (BEGIN)
+                                           ; SOURCE LINE # 455
+                                           ; SOURCE LINE # 456
+                                           ; SOURCE LINE # 458
+;---- Variable 'loc_u8_sfrpage_save' assigned to Register 'R7' ----
+0000 AF84              MOV     R7,SFRPAGE
+                                           ; SOURCE LINE # 462
+0002 E4                CLR     A
+0003 F584              MOV     SFRPAGE,A
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 13  
+
+                                           ; SOURCE LINE # 468
+0005 75D494            MOV     DAC0CN,#094H
+                                           ; SOURCE LINE # 471
+0008 F5D2              MOV     DAC0L,A
+                                           ; SOURCE LINE # 472
+000A 75D380            MOV     DAC0H,#080H
+                                           ; SOURCE LINE # 476
+000D F584              MOV     SFRPAGE,A
+                                           ; SOURCE LINE # 477
+000F 75D102            MOV     REF0CN,#02H
+                                           ; SOURCE LINE # 479
+0012 8F84              MOV     SFRPAGE,R7
+                                           ; SOURCE LINE # 480
+0014 22                RET     
+             ; FUNCTION DAC_Init (END)
+
+             ; FUNCTION Init_micro_interne (BEGIN)
+                                           ; SOURCE LINE # 488
+                                           ; SOURCE LINE # 489
+                                           ; SOURCE LINE # 491
+0000 120000      R     LCALL   Init_Reset_Sources
+                                           ; SOURCE LINE # 494
+0003 120000      R     LCALL   Init_Timer4
+                                           ; SOURCE LINE # 497
+0006 020000      R     LJMP    Init_Port_IO
+             ; FUNCTION Init_micro_interne (END)
+
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 14  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+u8sod. . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_CHAR   -----  1
+u16sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_INT    -----  2
+u32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  U_LONG   -----  4
+s8sod. . . . . . . . . . . . . . . . .  TYPEDEF  -----  CHAR     -----  1
+s16sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  INT      -----  2
+s32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  LONG     -----  4
+f32sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  FLOAT    -----  4
+f64sod . . . . . . . . . . . . . . . .  TYPEDEF  -----  FLOAT    -----  4
+Init_micro_interne . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+Autorise_toutes_interruptions. . . . .  PUBLIC   CODE   PROC     0000H  -----
+Masque_Interruption_Timer4 . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+Demasque_Interruption_Timer4 . . . . .  PUBLIC   CODE   PROC     0000H  -----
+SFRPAGE. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0084H  1
+PLL0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0089H  1
+OSCICN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   008AH  1
+OSCXCN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   008CH  1
+PLL0DIV. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   008DH  1
+PLL0MUL. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   008EH  1
+PLL0FLT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   008FH  1
+CLKSEL . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0097H  1
+P4MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   009CH  1
+P5MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   009DH  1
+P5 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D8H  1
+CCH0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A1H  1
+P2MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A6H  1
+P3MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A7H  1
+FLSCL. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B7H  1
+XBR2 . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E3H  1
+RSTSRC . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00EFH  1
+WDTCN. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00FFH  1
+IE . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A8H  1
+EIE2 . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E7H  1
+TMR4CF . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C9H  1
+RCAP4L . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00CAH  1
+RCAP4H . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00CBH  1
+TMR4CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+P6MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   009EH  1
+P7MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   009FH  1
+P1MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A5H  1
+P1 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0090H  1
+P0MDOUT. . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A4H  1
+P0 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   0080H  1
+P2 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00A0H  1
+P3 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B0H  1
+P4 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+REF0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D1H  1
+DAC0H. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D3H  1
+DAC0L. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D2H  1
+DAC0CN . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00D4H  1
+P6 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00E8H  1
+P7 . . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00F8H  1
+Init_Reset_Sources . . . . . . . . . .  STATIC   CODE   PROC     0000H  -----
+Init_Oscillateur . . . . . . . . . . .  STATIC   CODE   PROC     0000H  -----
+  loc_u16_cpt. . . . . . . . . . . . .  * REG *  DATA   U_INT    0006H  2
+Init_Timer4. . . . . . . . . . . . . .  STATIC   CODE   PROC     0000H  -----
+  loc_u8_sfrpage_save. . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+Init_Port_IO . . . . . . . . . . . . .  STATIC   CODE   PROC     0000H  -----
+C51 COMPILER V9.59.0.0   INIT_UC                                                           06/13/2022 16:37:27 PAGE 15  
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+u8_Test_Pll_Lock . . . . . . . . . . .  STATIC   CODE   PROC     0000H  -----
+DAC_Init . . . . . . . . . . . . . . .  STATIC   CODE   PROC     0000H  -----
+  loc_u8_sfrpage_save. . . . . . . . .  * REG *  DATA   U_CHAR   0007H  1
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    197    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

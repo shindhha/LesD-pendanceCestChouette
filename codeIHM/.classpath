@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="java"/>
+	<classpathentry kind="lib" path="C:/Users/jc.citerin/Desktop/jsch-0.1.55.jar"/>
+	<classpathentry kind="lib" path="C:/Users/jc.citerin/Downloads/jSerialComm-2.9.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/jc.citerin/Downloads/openxml4j-1.0-beta.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

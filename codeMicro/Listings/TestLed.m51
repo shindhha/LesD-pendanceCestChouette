@@ -1,0 +1,320 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    06/13/2022  16:28:19  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE .\Objects\init_uc.obj, .\Objects\main.obj TO .\Objects\TestLed PRINT (.\Listings\TestLed.m51) R
+>> AMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\init_uc.obj (INIT_UC)
+  .\Objects\main.obj (MAIN)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  .\Objects\TestLed (INIT_UC)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0041H     UNIT         ?PR?INIT_OSCILLATEUR?INIT_UC
+            CODE    0044H     0034H     UNIT         ?PR?INIT_PORT_IO?INIT_UC
+            CODE    0078H     0020H     UNIT         ?PR?_DELAY_MS?MAIN
+            CODE    0098H     0015H     UNIT         ?PR?DAC_INIT?INIT_UC
+            CODE    00ADH     0014H     UNIT         ?PR?INIT_TIMER4?INIT_UC
+            CODE    00C1H     0013H     UNIT         ?PR?MAIN?MAIN
+            CODE    00D4H     000CH     UNIT         ?PR?INIT_RESET_SOURCES?INIT_UC
+            CODE    00E0H     000CH     UNIT         ?C_C51STARTUP
+            CODE    00ECH     0009H     UNIT         ?PR?INIT_MICRO_INTERNE?INIT_UC
+            CODE    00F5H     0006H     UNIT         ?PR?U8_TEST_PLL_LOCK?INIT_UC
+            CODE    00FBH     0004H     UNIT         ?PR?MASQUE_INTERRUPTION_TIMER4?INIT_UC
+            CODE    00FFH     0004H     UNIT         ?PR?DEMASQUE_INTERRUPTION_TIMER4?INIT_UC
+            CODE    0103H     0004H     UNIT         ?PR?AUTORISE_TOUTES_INTERRUPTIONS?INIT_UC
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\TestLed (INIT_UC)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MAIN
+
+?PR?MAIN?MAIN
+  +--> ?PR?INIT_MICRO_INTERNE?INIT_UC
+  +--> ?PR?_DELAY_MS?MAIN
+
+?PR?INIT_MICRO_INTERNE?INIT_UC
+  +--> ?PR?INIT_RESET_SOURCES?INIT_UC
+  +--> ?PR?INIT_TIMER4?INIT_UC
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/13/2022  16:28:19  PAGE 2
+
+
+  +--> ?PR?INIT_PORT_IO?INIT_UC
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\TestLed (INIT_UC)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        INIT_UC
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:008FH         PUBLIC        PLL0FLT
+  D:00A0H         PUBLIC        P2
+  D:00FFH         PUBLIC        WDTCN
+  D:00B0H         PUBLIC        P3
+  D:00C8H         PUBLIC        P4
+  D:00D8H         PUBLIC        P5
+  C:0003H         SYMBOL        Init_Oscillateur
+  D:00E8H         PUBLIC        P6
+  D:00E7H         PUBLIC        EIE2
+  C:00FBH         PUBLIC        Masque_Interruption_Timer4
+  D:00F8H         PUBLIC        P7
+  D:008EH         PUBLIC        PLL0MUL
+  D:00D4H         PUBLIC        DAC0CN
+  D:0084H         PUBLIC        SFRPAGE
+  D:00A4H         PUBLIC        P0MDOUT
+  D:00A5H         PUBLIC        P1MDOUT
+  D:00A8H         PUBLIC        IE
+  D:00A6H         PUBLIC        P2MDOUT
+  D:00A7H         PUBLIC        P3MDOUT
+  D:009CH         PUBLIC        P4MDOUT
+  D:00A1H         PUBLIC        CCH0CN
+  D:009DH         PUBLIC        P5MDOUT
+  D:009EH         PUBLIC        P6MDOUT
+  D:009FH         PUBLIC        P7MDOUT
+  C:0044H         SYMBOL        Init_Port_IO
+  D:00E3H         PUBLIC        XBR2
+  D:00D1H         PUBLIC        REF0CN
+  D:00CBH         PUBLIC        RCAP4H
+  C:00F5H         SYMBOL        u8_Test_Pll_Lock
+  D:00CAH         PUBLIC        RCAP4L
+  D:0089H         PUBLIC        PLL0CN
+  C:00ADH         SYMBOL        Init_Timer4
+  D:00C9H         PUBLIC        TMR4CF
+  D:00C8H         PUBLIC        TMR4CN
+  C:0098H         SYMBOL        DAC_Init
+  D:0097H         PUBLIC        CLKSEL
+  D:00D3H         PUBLIC        DAC0H
+  D:008AH         PUBLIC        OSCICN
+  D:00D2H         PUBLIC        DAC0L
+  C:00D4H         SYMBOL        Init_Reset_Sources
+  D:008CH         PUBLIC        OSCXCN
+  C:00FFH         PUBLIC        Demasque_Interruption_Timer4
+  D:00EFH         PUBLIC        RSTSRC
+  C:0103H         PUBLIC        Autorise_toutes_interruptions
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/13/2022  16:28:19  PAGE 3
+
+
+  C:00ECH         PUBLIC        Init_micro_interne
+  D:00B7H         PUBLIC        FLSCL
+  D:008DH         PUBLIC        PLL0DIV
+  -------         PROC          INIT_RESET_SOURCES
+  C:00D4H         LINE#         190
+  C:00D4H         LINE#         191
+  C:00D4H         LINE#         194
+  C:00D7H         LINE#         195
+  C:00DAH         LINE#         198
+  C:00DDH         LINE#         201
+  C:00DFH         LINE#         202
+  -------         ENDPROC       INIT_RESET_SOURCES
+  -------         PROC          U8_TEST_PLL_LOCK
+  C:00F5H         LINE#         210
+  C:00F5H         LINE#         211
+  C:00F5H         LINE#         212
+  C:00FAH         LINE#         213
+  -------         ENDPROC       U8_TEST_PLL_LOCK
+  -------         PROC          INIT_OSCILLATEUR
+  -------         DO            
+  D:0006H         SYMBOL        loc_u16_cpt
+  -------         ENDDO         
+  C:0003H         LINE#         230
+  C:0003H         LINE#         231
+  C:0003H         LINE#         232
+  C:0006H         LINE#         235
+  C:0009H         LINE#         237
+  C:000CH         LINE#         239
+  C:000FH         LINE#         242
+  C:0012H         LINE#         244
+  C:0014H         LINE#         246
+  C:0017H         LINE#         248
+  C:001AH         LINE#         250
+  C:001DH         LINE#         255
+  C:0020H         LINE#         257
+  C:0023H         LINE#         259
+  C:0026H         LINE#         261
+  C:0029H         LINE#         275
+  C:0029H         LINE#         276
+  C:0029H         LINE#         278
+  C:0034H         LINE#         281
+  C:0037H         LINE#         289
+  C:003DH         LINE#         290
+  C:003DH         LINE#         292
+  C:003DH         LINE#         295
+  C:0040H         LINE#         297
+  C:0043H         LINE#         299
+  -------         ENDPROC       INIT_OSCILLATEUR
+  -------         PROC          INIT_TIMER4
+  -------         DO            
+  D:0007H         SYMBOL        loc_u8_sfrpage_save
+  -------         ENDDO         
+  C:00ADH         LINE#         306
+  C:00ADH         LINE#         307
+  C:00ADH         LINE#         309
+  C:00AFH         LINE#         311
+  C:00B2H         LINE#         312
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/13/2022  16:28:19  PAGE 4
+
+
+  C:00B5H         LINE#         313
+  C:00B8H         LINE#         315
+  C:00BBH         LINE#         316
+  C:00BEH         LINE#         322
+  C:00C0H         LINE#         324
+  -------         ENDPROC       INIT_TIMER4
+  -------         PROC          INIT_PORT_IO
+  C:0044H         LINE#         338
+  C:0044H         LINE#         339
+  C:0044H         LINE#         400
+  C:0047H         LINE#         401
+  C:004DH         LINE#         402
+  C:0053H         LINE#         403
+  C:0059H         LINE#         404
+  C:005FH         LINE#         405
+  C:0065H         LINE#         406
+  C:006AH         LINE#         407
+  C:006FH         LINE#         408
+  C:0074H         LINE#         410
+  C:0077H         LINE#         412
+  -------         ENDPROC       INIT_PORT_IO
+  -------         PROC          MASQUE_INTERRUPTION_TIMER4
+  C:00FBH         LINE#         420
+  C:00FBH         LINE#         421
+  C:00FBH         LINE#         423
+  C:00FEH         LINE#         424
+  -------         ENDPROC       MASQUE_INTERRUPTION_TIMER4
+  -------         PROC          DEMASQUE_INTERRUPTION_TIMER4
+  C:00FFH         LINE#         432
+  C:00FFH         LINE#         433
+  C:00FFH         LINE#         435
+  C:0102H         LINE#         436
+  -------         ENDPROC       DEMASQUE_INTERRUPTION_TIMER4
+  -------         PROC          AUTORISE_TOUTES_INTERRUPTIONS
+  C:0103H         LINE#         444
+  C:0103H         LINE#         445
+  C:0103H         LINE#         447
+  C:0106H         LINE#         448
+  -------         ENDPROC       AUTORISE_TOUTES_INTERRUPTIONS
+  -------         PROC          DAC_INIT
+  -------         DO            
+  D:0007H         SYMBOL        loc_u8_sfrpage_save
+  -------         ENDDO         
+  C:0098H         LINE#         455
+  C:0098H         LINE#         456
+  C:0098H         LINE#         458
+  C:009AH         LINE#         462
+  C:009DH         LINE#         468
+  C:00A0H         LINE#         471
+  C:00A2H         LINE#         472
+  C:00A5H         LINE#         476
+  C:00A7H         LINE#         477
+  C:00AAH         LINE#         479
+  C:00ACH         LINE#         480
+  -------         ENDPROC       DAC_INIT
+  -------         PROC          INIT_MICRO_INTERNE
+  C:00ECH         LINE#         488
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/13/2022  16:28:19  PAGE 5
+
+
+  C:00ECH         LINE#         489
+  C:00ECH         LINE#         491
+  C:00EFH         LINE#         494
+  C:00F2H         LINE#         497
+  -------         ENDPROC       INIT_MICRO_INTERNE
+  -------         ENDMOD        INIT_UC
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:00D8H         PUBLIC        P5
+  D:00E8H         PUBLIC        ADC0CN
+  D:00E8H         PUBLIC        ADC2CN
+  D:00A8H         PUBLIC        IE
+  D:00D8H         PUBLIC        PCA0CN
+  D:00B8H         PUBLIC        IP
+  D:00C0H         PUBLIC        SMB0CN
+  C:00C1H         PUBLIC        main
+  D:0088H         PUBLIC        CPT0CN
+  D:0088H         PUBLIC        CPT1CN
+  B:00D8H.1       PUBLIC        LED_D4
+  D:00F8H         PUBLIC        SPI0CN
+  C:0078H         PUBLIC        _DELAY_ms
+  D:0088H         PUBLIC        TCON
+  D:00C8H         PUBLIC        TMR2CN
+  D:00C8H         PUBLIC        TMR3CN
+  D:00C8H         PUBLIC        TMR4CN
+  D:0088H         PUBLIC        FLSTAT
+  D:0098H         PUBLIC        SCON0
+  D:0098H         PUBLIC        SCON1
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          _DELAY_MS
+  D:0006H         SYMBOL        ms_Count
+  -------         DO            
+  D:0004H         SYMBOL        i
+  D:0002H         SYMBOL        j
+  -------         ENDDO         
+  C:0078H         LINE#         6
+  C:0078H         LINE#         7
+  C:0078H         LINE#         9
+  C:0082H         LINE#         10
+  C:0082H         LINE#         11
+  C:0090H         LINE#         12
+  C:0097H         LINE#         13
+  -------         ENDPROC       _DELAY_MS
+  -------         PROC          MAIN
+  C:00C1H         LINE#         15
+  C:00C1H         LINE#         16
+  C:00C4H         LINE#         17
+  C:00C4H         LINE#         18
+  C:00C6H         LINE#         19
+  C:00CDH         LINE#         20
+  C:00CFH         LINE#         21
+  C:00D2H         LINE#         22
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  06/13/2022  16:28:19  PAGE 6
+
+
+    SEGMENT: ?PR?INIT_OSCILLATEUR?INIT_UC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?MASQUE_INTERRUPTION_TIMER4?INIT_UC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?DEMASQUE_INTERRUPTION_TIMER4?INIT_UC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?AUTORISE_TOUTES_INTERRUPTIONS?INIT_UC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?DAC_INIT?INIT_UC
+
+Program Size: data=9.0 xdata=0 code=263
+LINK/LOCATE RUN COMPLETE.  5 WARNING(S),  0 ERROR(S)
